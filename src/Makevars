@@ -1,0 +1,42 @@
+CUDA_HOME = /usr/local/cuda
+R_HOME = /home/konstantin/R/x86_64-pc-linux-gnu-library/3.2
+
+# This defines what the shared object libraries will be
+PKG_LIBS= -L/usr/local/cuda-10.0/lib64 -Wl,-rpath,/usr/local/cuda-10.0/lib64 -lcudart -d
+
+
+#########################################
+
+R_INC = /usr/share/R/include
+RCPP_INC = $(R_HOME)/Rcpp/include
+
+NVCC = $(CUDA_HOME)/bin/nvcc
+CUDA_INC = $(CUDA_HOME)/include 
+CUDA_LIB = $(CUDA_HOME)/lib64
+
+LIBS = -lcudart -d
+NVCC_FLAGS = -Xcompiler "-fPIC"  -I$(R_INC)
+
+### Define objects
+cu_sources := $(wildcard kernels/*.cu)
+cu_sharedlibs := $(patsubst %.cu, %.o,$(cu_sources))
+
+cpp_sources := $(wildcard *.cpp)
+cpp_sharedlibs := $(patsubst %.cpp, %.o, $(cpp_sources))
+
+#includes
+KERN_INC  = includes/
+
+OBJECTS = $(cu_sharedlibs) $(cpp_sharedlibs)
+
+all : rcppcuda.so
+
+rcppcuda.so: $(OBJECTS)
+
+%.o: %.cpp $(cpp_sources)
+	$(CXX) $< -c -fPIC -I$(R_INC) -I$(RCPP_INC) -I$(CUDA_INC)
+
+%.o: %.cu $(cu_sources)
+	$(NVCC) $(NVCC_FLAGS) -I$(CUDA_INC) $< -c -o $@
+
+# nvcc.exe" -gencode=arch=compute_35,code=\"sm_35,compute_35\" --use-local-env -ccbin "E:\MVS2017\VC\Tools\MSVC\14.15.26726\bin\HostX86\x64" -x cu  -I"..\..\..\..\..\..\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v10.0\include" -I"..\..\..\..\..\..\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v10.0\include"  -G   --keep-dir x64\Debug -maxrregcount=0  --machine 64 --compile -cudart static  -g   -DWIN32 -DWIN64 -D_DEBUG -D_CONSOLE -D_MBCS -Xcompiler "/EHsc /W3 /nologo /Od /Fdx64\Debug\vc141.pdb /FS /Zi /RTC1 /MDd " -o x64\Debug\kernel.cu.obj "C:\Users\Konstantin\source\repos\CudaTest\CudaTest\kernel.cu"

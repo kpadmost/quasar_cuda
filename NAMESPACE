@@ -1,0 +1,3 @@
+useDynLib(QuasarFitCuda)
+exportPattern("^[[:alpha:]]+")
+importFrom(Rcpp, evalCpp)

@@ -1,0 +1,5 @@
+.Rproj.user/*
+.Rproj.user
+**/*.o
+**/*.out
+**/*.so
