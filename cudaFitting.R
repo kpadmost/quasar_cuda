@@ -13,10 +13,14 @@ testFitting <- function() {
   fluxMatrix <- getFluxMatrix(quasars)
   errorMatrix <- getErrorMatrix(quasars)
   params <- getLambdaParams(quasars)
+  cppGenerateWavelenghtMatrix(params)
   print('finish')
-  # $wavelengthMatrix
-  # $spectrumMatrix
-  # $errorMatrix
+
+}
+
+qP <- function() {
+  dm <- list(c(1:4))
+  rep(dm, 4)
 }
 
 testFitting()

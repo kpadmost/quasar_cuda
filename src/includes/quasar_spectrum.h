@@ -7,6 +7,6 @@ void generateWavelengths(
     double* h_output,
     double4* params,
     const size_t spectrum_size
-)
+);
 
 #endif
