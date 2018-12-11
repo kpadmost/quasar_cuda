@@ -3,3 +3,9 @@
 **/*.o
 **/*.out
 **/*.so
+R/RcppExports.R
+.Rhistory/*
+.Rhistory
+src/RcppExports.cpp
+quasar_list
+spectra/*

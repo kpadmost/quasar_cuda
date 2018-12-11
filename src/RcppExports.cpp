@@ -64,13 +64,14 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// rcpp_hello_world
-List rcpp_hello_world();
-RcppExport SEXP _QuasarFitCuda_rcpp_hello_world() {
+// cppMatrixTranspose
+SEXP cppMatrixTranspose(Rcpp::NumericMatrix inputMatrix);
+RcppExport SEXP _QuasarFitCuda_cppMatrixTranspose(SEXP inputMatrixSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    rcpp_result_gen = Rcpp::wrap(rcpp_hello_world());
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type inputMatrix(inputMatrixSEXP);
+    rcpp_result_gen = Rcpp::wrap(cppMatrixTranspose(inputMatrix));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -81,7 +82,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_QuasarFitCuda_cppMatrixMinusMatrix", (DL_FUNC) &_QuasarFitCuda_cppMatrixMinusMatrix, 2},
     {"_QuasarFitCuda_cppMatrixDivideMatrix", (DL_FUNC) &_QuasarFitCuda_cppMatrixDivideMatrix, 2},
     {"_QuasarFitCuda_cppMatrixMultiplyCol", (DL_FUNC) &_QuasarFitCuda_cppMatrixMultiplyCol, 2},
-    {"_QuasarFitCuda_rcpp_hello_world", (DL_FUNC) &_QuasarFitCuda_rcpp_hello_world, 0},
+    {"_QuasarFitCuda_cppMatrixTranspose", (DL_FUNC) &_QuasarFitCuda_cppMatrixTranspose, 1},
     {NULL, NULL, 0}
 };
 

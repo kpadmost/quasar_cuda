@@ -1,5 +1,4 @@
-#include <cuda_runtime.h>
-#include <stdio.h>
+
 
 #include "cuda_tools.cc"
 
@@ -122,17 +121,68 @@ void matrix_multiply_vector
 	output[idx] = matrix[idx] * vector[col_idx];
 }
 
-__global__
-void matrix_transpose(
-  double *input,
-  double *output,
-  const uint row_size,
-  const uint col_size
-)
-{
 
+
+__global__ void matrix_transpose(double *idata, double *odata, int width, int height)
+{
+	__shared__ double block[BLOCK_DIM][BLOCK_DIM+1];
+	
+	// read the matrix tile into shared memory
+	unsigned int xIndex = blockIdx.x * BLOCK_DIM + threadIdx.x;
+	unsigned int yIndex = blockIdx.y * BLOCK_DIM + threadIdx.y;
+	if((xIndex < width) && (yIndex < height))
+	{
+		unsigned int index_in = yIndex * width + xIndex;
+		block[threadIdx.y][threadIdx.x] = idata[index_in];
+	}
+
+	__syncthreads();
+
+	// write the transposed matrix tile to global memory
+	xIndex = blockIdx.y * BLOCK_DIM + threadIdx.x;
+	yIndex = blockIdx.x * BLOCK_DIM + threadIdx.y;
+	if((xIndex < height) && (yIndex < width))
+	{
+		unsigned int index_out = yIndex * height + xIndex;
+		odata[index_out] = block[threadIdx.x][threadIdx.y];
+	}
 }
 
+__global__ 
+void matrix_transpose1
+	(
+		double* matrix,	// Macierz wejściowa
+		double* tmatrix,	// Macierz transponowana
+		uint width,			// Ilość kolumn, szerokość macierzy
+		uint height			// Ilość wierszy, wysokość macierzy
+	)
+{
+  __shared__ double scratch[BLOCK_DIM * (BLOCK_DIM + 1)];
+	// gid0 - numer wiersza
+	uint x_idx = blockIdx.x * blockDim.x + threadIdx.x;
+	// gid1 - numer kolumny
+	uint y_idx = blockIdx.y * blockDim.y + threadIdx.y;
+	
+	uint idx;
+
+	// Pobieranie wartości z matrix	
+	if((x_idx < width) && (y_idx < height))
+	{	
+		idx = y_idx * width + x_idx;
+		scratch[threadIdx.y*(BLOCK_DIM+1)+threadIdx.x] = matrix[idx];
+	}
+	__syncthreads();
+
+
+	// Pobieranie wartości z matrix	
+	x_idx = blockIdx.y  * BLOCK_DIM + threadIdx.x;
+	y_idx = blockIdx.x * BLOCK_DIM + threadIdx.y;
+	if((x_idx < height) && (y_idx < width))
+	{	
+		idx = y_idx * height + x_idx;
+		tmatrix[idx] = scratch[threadIdx.x*(BLOCK_DIM+1)+threadIdx.y];
+	}
+}
 
 extern "C"
 void matrixAddScalar(double* h_input, 
@@ -230,7 +280,7 @@ void matrixMultiplyColVector(
   checkCudaErrors(cudaMemcpy(d_input, h_input, size, cudaMemcpyHostToDevice));
   checkCudaErrors(cudaMemcpy(d_vector, h_vector, vSize, cudaMemcpyHostToDevice));
   //kernel invocation
-  dim3 threadsPerBlock(16, 16);
+  dim3 threadsPerBlock(32, 32);
   dim3 blocksPerGrid(1, 1);
   blocksPerGrid.x = ceil(double(width)/double(threadsPerBlock.x));
   blocksPerGrid.y = ceil(double(height)/double(threadsPerBlock.y));
@@ -272,10 +322,10 @@ void matrixSubstractMatrix(
     checkCudaErrors(cudaMemcpy(d_input, h_input, size, cudaMemcpyHostToDevice));
     checkCudaErrors(cudaMemcpy(d_subtrahend, h_subtrahend, size, cudaMemcpyHostToDevice));
     //kernel invocation
-    dim3 threadsPerBlock(512, 2);
+    dim3 threadsPerBlock(16, 16);
     dim3 blocksPerGrid(1, 1);
-    blocksPerGrid.x = ceil(double(width)/double(threadsPerBlock.x));
-    blocksPerGrid.y = ceil(double(height)/double(threadsPerBlock.y));
+    blocksPerGrid.x = height / threadsPerBlock.x;
+    blocksPerGrid.y = width / threadsPerBlock.y;
     matrix_minus_matrix<<<blocksPerGrid, threadsPerBlock>>>(
       d_input,
       d_subtrahend,
@@ -335,18 +385,22 @@ void matrixDivideMatrix(
 
 
 
+
+
+
 extern "C"
 void matrixTranspose(
     double *h_input,
     double *h_output,
-    const size_t realWidth,
-    const size_t realHeight
+    const size_t width,
+    const size_t height
 ) 
 {
     double *d_input = 0, *d_output = 0;
     // for efficient kernel computations, we should expand matrices
+    size_t size = width * height * sizeof(double);
     
-    size_t size = realWidth * realHeight * sizeof(double);
+    
     //initialize device 
     checkCudaErrors(cudaSetDevice(0));
   
@@ -356,16 +410,14 @@ void matrixTranspose(
     // device memory copying
     checkCudaErrors(cudaMemcpy(d_input, h_input, size, cudaMemcpyHostToDevice));
     //kernel invocation
-    dim3 threadsPerBlock(512, 2);
-    dim3 blocksPerGrid(1, 1);
-    blocksPerGrid.x = ceil(double(realWidth)/double(threadsPerBlock.x));
-    blocksPerGrid.y = ceil(double(realHeight)/double(threadsPerBlock.y));
-    matrix_transpose<<<blocksPerGrid, threadsPerBlock>>>(d_input, d_output, realWidth, realHeight);
+    dim3 threadsPerBlock(BLOCK_DIM, BLOCK_DIM, 1);
+    dim3 blocksPerGrid(width / BLOCK_DIM, height / BLOCK_DIM, 1);
+    matrix_transpose1<<<blocksPerGrid, threadsPerBlock>>>(d_input, d_output, width, height);
+    cudaDeviceSynchronize();
     checkCudaErrors(cudaGetLastError());
     
     //device to host memory copy
     checkCudaErrors(cudaMemcpy(h_output, d_output, size, cudaMemcpyDeviceToHost));
-    
     cudaFree(d_input);
     cudaFree(d_output);
 }

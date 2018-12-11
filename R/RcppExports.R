@@ -21,7 +21,7 @@ cppMatrixMultiplyCol <- function(inputMatrix, vector) {
     .Call('_QuasarFitCuda_cppMatrixMultiplyCol', PACKAGE = 'QuasarFitCuda', inputMatrix, vector)
 }
 
-rcpp_hello_world <- function() {
-    .Call('_QuasarFitCuda_rcpp_hello_world', PACKAGE = 'QuasarFitCuda')
+cppMatrixTranspose <- function(inputMatrix) {
+    .Call('_QuasarFitCuda_cppMatrixTranspose', PACKAGE = 'QuasarFitCuda', inputMatrix)
 }
 

@@ -4,7 +4,6 @@ R_HOME = /home/konstantin/R/x86_64-pc-linux-gnu-library/3.2
 # This defines what the shared object libraries will be
 PKG_LIBS= -L/usr/local/cuda-10.0/lib64 -Wl,-rpath,/usr/local/cuda-10.0/lib64 -lcudart -d
 
-
 #########################################
 
 R_INC = /usr/share/R/include
@@ -15,7 +14,7 @@ CUDA_INC = $(CUDA_HOME)/include
 CUDA_LIB = $(CUDA_HOME)/lib64
 
 LIBS = -lcudart -d
-NVCC_FLAGS = -Xcompiler "-fPIC"  -I$(R_INC)
+NVCC_FLAGS = -Xcompiler "-fPIC"  -I$(R_INC) --std=c++11
 
 ### Define objects
 cu_sources := $(wildcard kernels/*.cu)
@@ -34,7 +33,7 @@ all : rcppcuda.so
 rcppcuda.so: $(OBJECTS)
 
 %.o: %.cpp $(cpp_sources)
-	$(CXX) $< -c -fPIC -I$(R_INC) -I$(RCPP_INC) -I$(CUDA_INC)
+	$(CXX) -std=c++11 $< -c -fPIC -I$(R_INC) -I$(RCPP_INC) -I$(CUDA_INC) 
 
 %.o: %.cu $(cu_sources)
 	$(NVCC) $(NVCC_FLAGS) -I$(CUDA_INC) $< -c -o $@

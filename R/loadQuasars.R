@@ -1,0 +1,66 @@
+#' @importFrom parseFITS readQuasarInfo
+
+BLOCK_SIZE <- 32
+ASTRO_OBJ_SIZE <- 4096
+
+#' @export
+loadQuasarsFromFolder <- function(folder, datafile) {
+  quasarFiles <- readLines(datafile)
+  files <- file.path(folder, quasarFiles)
+  lapply(files, readQuasarInfo)
+}
+
+getMatrixFromVector <- function(quasars, values, complemented = T) {
+  data <- lapply(lapply(quasars,  `[[`, values), 
+                      function(vec) { c(vec, rep(Inf, ASTRO_OBJ_SIZE - length(vec))) })
+  dataM <- do.call(rbind, data)
+  if(complemented)
+    dataM <- complementMatrix(dataM)
+  dataM
+}
+
+#' @export
+getFluxMatrix <- function(quasars, complemented=T) 
+{
+  getMatrixFromVector(quasars, 'flux', complemented)
+}
+
+
+#' @export
+getErrorMatrix <- function(quasars, complemented=T) 
+{
+  getMatrixFromVector(quasars, 'error', complemented)
+}
+
+
+#' @export
+getLambdaParams <- function(quasars, complemented=T) {
+  params <- lapply(
+    lapply(
+      quasars,
+      `[[`,
+      'specs'
+    ), function(quasarParams) c(quasarParams$a, quasarParams$b, quasarParams$z, 0)
+  )
+  if(complemented) {
+    comSize <- BLOCK_SIZE - (length(params) %% BLOCK_SIZE)
+    dm <- list(rep(0, 4))
+    params <- c(params, rep(dm, comSize))
+  }
+  params
+}
+
+complementVector <- function(sVector) {
+  size <- length(sVe)
+}
+
+complementMatrix <- function(sMatrix) {
+  rows <- nrow(sMatrix)
+  complementedRSize <- BLOCK_SIZE  - (rows %% BLOCK_SIZE)
+  complementedMatrix <- matrix(0, nrow = complementedRSize, ncol = ASTRO_OBJ_SIZE)
+  rbind(sMatrix, complementedMatrix)
+}
+
+complementQuasarMatrix <- function(quasarMatrix) {
+  lapply(quasarMatrix, complementMatrix)
+}
