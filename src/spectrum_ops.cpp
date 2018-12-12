@@ -2,6 +2,7 @@
 using namespace Rcpp;
 
 #include "includes/quasar_spectrum.h"
+#include "RcppExtended.hpp"
 // This is a simple example of exporting a C++ function to R. You can
 // source this function into an R session using the Rcpp::sourceCpp 
 // function (or via the Source button on the editor toolbar). Learn
@@ -13,22 +14,15 @@ using namespace Rcpp;
 //
 
 // [[Rcpp::export]]
-NumericMatrix cppGenerateWavelenghtMatrix(SEXP params) {
-  std::vector<double4> params_m;
-  const size_t size = params.size();
-  memcpy((void*)&params_m[0], (void*)&params[0], sizeof(double4) * params.size());
-  
-  for(int i = 0; i < size; ++ i) {
-    double4 pr = params_m[0];
-    Rcout << "a " << pr.x << " b " << pr.y << " z " << pr.z << std::endl;
-  }
-    
-  NumericMatrix result(4096, size);
-  // generateWavelengths(
-  //     &result[0],
-  //     params_m,
-  //     params.nrow()
-  // );
+NumericMatrix cppGenerateWavelenghtMatrix(SEXP params, const unsigned int size) {
+  std::vector<double4> params_m = as< std::vector<double4>>(params);
+  const size_t spectrum_number = params_m.size();
+  NumericMatrix result(ASTRO_OBJ_SIZE, size);
+  generateWavelengths(
+      &result[0],
+      &params_m[0],
+      spectrum_number
+  );
   return NumericMatrix(1, 1);
 }
 

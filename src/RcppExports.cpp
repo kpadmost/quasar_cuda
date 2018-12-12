@@ -76,13 +76,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // cppGenerateWavelenghtMatrix
-NumericMatrix cppGenerateWavelenghtMatrix(SEXP params);
-RcppExport SEXP _QuasarFitCuda_cppGenerateWavelenghtMatrix(SEXP paramsSEXP) {
+NumericMatrix cppGenerateWavelenghtMatrix(SEXP params, const unsigned int size);
+RcppExport SEXP _QuasarFitCuda_cppGenerateWavelenghtMatrix(SEXP paramsSEXP, SEXP sizeSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< SEXP >::type params(paramsSEXP);
-    rcpp_result_gen = Rcpp::wrap(cppGenerateWavelenghtMatrix(params));
+    Rcpp::traits::input_parameter< const unsigned int >::type size(sizeSEXP);
+    rcpp_result_gen = Rcpp::wrap(cppGenerateWavelenghtMatrix(params, size));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -94,7 +95,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_QuasarFitCuda_cppMatrixDivideMatrix", (DL_FUNC) &_QuasarFitCuda_cppMatrixDivideMatrix, 2},
     {"_QuasarFitCuda_cppMatrixMultiplyCol", (DL_FUNC) &_QuasarFitCuda_cppMatrixMultiplyCol, 2},
     {"_QuasarFitCuda_cppMatrixTranspose", (DL_FUNC) &_QuasarFitCuda_cppMatrixTranspose, 1},
-    {"_QuasarFitCuda_cppGenerateWavelenghtMatrix", (DL_FUNC) &_QuasarFitCuda_cppGenerateWavelenghtMatrix, 1},
+    {"_QuasarFitCuda_cppGenerateWavelenghtMatrix", (DL_FUNC) &_QuasarFitCuda_cppGenerateWavelenghtMatrix, 2},
     {NULL, NULL, 0}
 };
 
