@@ -25,7 +25,7 @@ cppMatrixTranspose <- function(inputMatrix) {
     .Call('_QuasarFitCuda_cppMatrixTranspose', PACKAGE = 'QuasarFitCuda', inputMatrix)
 }
 
-cppGenerateWavelenghtMatrix <- function(params) {
-    .Call('_QuasarFitCuda_cppGenerateWavelenghtMatrix', PACKAGE = 'QuasarFitCuda', params)
+cppGenerateWavelenghtMatrix <- function(params, size) {
+    .Call('_QuasarFitCuda_cppGenerateWavelenghtMatrix', PACKAGE = 'QuasarFitCuda', params, size)
 }
 
