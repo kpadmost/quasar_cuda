@@ -87,6 +87,7 @@ SEXP cppMatrixMultiplyCol(
   return result;
 }
 
+//TODO: fix!
 // [[Rcpp::export]]
 SEXP cppMatrixTranspose(
     Rcpp::NumericMatrix inputMatrix
@@ -109,14 +110,14 @@ SEXP cppMatrixTranspose(
   
   Rcpp::NumericMatrix result(width, height);
   matrixTranspose(&inputMatrix[0], &h_output[0], width, height);
-  //   //result[i] = h_output[i];
-  // // std::copy(h_output.begin(), h_output.end(), result.begin());
-  // for(int j = 0; j < height; ++j) {
-  //   for(int i = 0; i < width; ++i) 
-  //     result(j, i) = h_output[j * width + i];
-  //     // h_input[j * width + i] = inputMatrix(j, i);
-  // }
- // return quasarCuda::CArrayToRcppNumericMatrix(&h_output[0], height, width);
+   //result[i] = h_output[i];
+ // std::copy(h_output.begin(), h_output.end(), result.begin());
+ for(int j = 0; j < height; ++j) {
+   for(int i = 0; i < width; ++i)
+     result(j, i) = h_output[j * width + i];
+     // h_input[j * width + i] = inputMatrix(j, i);
+ }
+ return result;
   
 }
 

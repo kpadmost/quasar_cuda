@@ -9,6 +9,16 @@ loadWindows <- function(filename) {
   })
 }
 
+#TODO: remove!
+#' @export
+qP <- function() {
+  d1 <- list(c(3.57840, 0.00010, 1.80677, 0.00000))
+  d2 <- list(c(3.57900, 0.00010, 1.51807, 0.00000))
+  dm <- list(rep(0, 4))
+  lmx <- rep(dm, 30)
+  c(d1, d2, lmx)
+}
+
 #' @export
 loadFeTemplate <- function(filename='iron_emission_temp.bin') {
   template <- read.delim(filename, header = F, sep = " ")

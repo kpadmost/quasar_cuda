@@ -12,15 +12,23 @@ testFitting <- function() {
   #
   fluxMatrix <- getFluxMatrix(quasars)
   errorMatrix <- getErrorMatrix(quasars)
+  sizesVector <- getSizesVector(quasars)
   params <- getLambdaParams(quasars)
-  cppGenerateWavelenghtMatrix(params)
+  wm <- cppGenerateWavelenghtMatrix(params)
+  wm <- t(wm) #TODO: fix!!!!!!
+  flux <- cppMovingAverage(fluxMatrix, sizesVector, 10)
+  f1 <- flux[1,]
+  l1 <- wm[1,]
   print('finish')
 
 }
 
 qP <- function() {
-  dm <- list(c(1:4))
-  rep(dm, 4)
+  d1 <- list(c(3.57840, 0.00010, 1.80677, 0.00000))
+  d2 <- list(c(3.57900, 0.00010, 1.51807, 0.00000))
+  dm <- list(rep(0, 4))
+  lmx <- rep(dm, 30)
+  c(d1, d2, lmx)
 }
 
 testFitting()

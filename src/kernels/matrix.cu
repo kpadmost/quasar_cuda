@@ -412,7 +412,7 @@ void matrixTranspose(
     //kernel invocation
     dim3 threadsPerBlock(BLOCK_DIM, BLOCK_DIM, 1);
     dim3 blocksPerGrid(width / BLOCK_DIM, height / BLOCK_DIM, 1);
-    matrix_transpose1<<<blocksPerGrid, threadsPerBlock>>>(d_input, d_output, width, height);
+    matrix_transpose<<<blocksPerGrid, threadsPerBlock>>>(d_input, d_output, width, height);
     cudaDeviceSynchronize();
     checkCudaErrors(cudaGetLastError());
     

@@ -5,49 +5,211 @@
 __global__
 void generateWavelengthsMatrix
 	(
-		double * output_matrix
-		const double4* params_vector,
+		double  *output_matrix,
+		double4 *params_vector
 	)
 {
 	// gid0 - numer widma kwazaru
-	uint gid0 = get_global_id(0);	
+	uint gid0 = blockIdx.x * blockDim.x + threadIdx.x;
 	
 	// parametry a, b i z kwazaru
-	double4 abz_;
-	__local double4 local_abz_;
-
-	if (get_local_id(0) == 0)
-	{
-  		local_abz_ = abz_buffer[gid0];
-	}
-	barrier(CLK_LOCAL_MEM_FENCE);
-	abz_ = local_abz_;
+  double4 abz_ = params_vector[gid0];
 	
 	// gid1 - numer elementu widma (indeks od 0 do 4095)
-	uint gid1 = get_global_id(1);
-	uint idx = gid0 * get_global_size(1) + gid1;
+	uint gid1 = blockIdx.y * blockDim.y + threadIdx.y;
+	uint idx = gid0 * gridDim.y * blockDim.y  + gid1;
 	
 	// Wyliczenie lambdy dla tego gid1
-	double wl = (abz_.x * (double)(gid1)) + abz_.y;
-	wl = pow((double)(10),wl);
+	double wl = abz_.x  + (abz_.y * (double)(gid1));
+	wl = pow(10.0,wl);
 	
 	// Uwzglednienie przesuniecia kosmologicznego - przejscie do ukladu emitujacego z wykorzystaniem redshiftu
-	wavelengths_matrix[idx] = wl / (abz_.z + (double)(1));
+	output_matrix[idx] = wl / (abz_.z + 1.0);
 	
 	return;
 }
 
 
+__global__
+void single_interpolation
+	(
+		double *x_matrix,	// Długości dla widm
+		double *y_matrix,	// Widma po kolumnach
+		size_t  *sizes,			// Rozmiary widm
+		const uint size,				// Ilość widm (ilość kolumn)
+		const double *s_matrix,	// Długości fal widma, które dodajemy
+		const double *t_matrix,	// Widmo, które dodajemy
+		const uint to_add_spectrum_size, 	
+		double *output_matrix		// Macierz zapisu wyniku sumy
+	)
+{
+	// gid0 - numer widma kwazaru
+	uint gid0 = blockIdx.x * blockDim.x + threadIdx.x;
+	if(gid0 >= size)
+	{
+		return;
+	}	
+	
+	uint spectrum_size = sizes[gid0];
+
+	// Indek elementu ze wavelengths_matrix/spectrums_matrix
+	uint idx = gid0;
+	uint idx_max = idx + spectrum_size * size;	
+	
+	// Indeks elementu z to_add_wavelengths/to_add_spectrum
+	uint to_add_idx = 0;
+	uint to_add_idx_max = to_add_spectrum_size - 1;
+	
+	double wavelength = x_matrix[idx];
+	double value = y_matrix[idx];
+	
+	double to_add_wl 	= s_matrix[to_add_idx];
+	double to_add_wl_next 	= s_matrix[to_add_idx+1];		
+	double to_add_value 	= t_matrix[to_add_idx];
+	double to_add_value_next = t_matrix[to_add_idx+1];	
+	
+
+	int idx_max_flag = 0;
+	int to_add_idx_max_flag = 0;
+
+	while(1)
+	{				
+		if(wavelength >= to_add_wl)
+		{			
+			if(wavelength <= to_add_wl_next)
+			{	
+				double a = (to_add_value_next - to_add_value)/(to_add_wl_next - to_add_wl);
+				double b = to_add_value - (a * to_add_wl);
+				value = value + (a * wavelength + b);		
+				output_matrix[idx] = value;		
+				
+				idx += size;
+				// Sprawdzanie czy idx nie przekroczył idx_max
+				// Zanim odczytamy dane.
+				idx_max_flag = idx < idx_max ? 0 : 1;
+				if(idx_max_flag)
+				{
+					break;
+				}
+				wavelength = x_matrix[idx];
+				value = y_matrix[idx];
+			}
+			else
+			{
+				to_add_idx++;
+				// Sprawdzanie czy to_add_idx nie przekroczył to_add_idx_max
+				// Zanim odczytamy dane.
+				to_add_idx_max_flag = to_add_idx < to_add_idx_max ? 0 : 1;
+				if(to_add_idx_max_flag)
+				{
+					break;
+				}
+				to_add_wl = to_add_wl_next;				
+				to_add_wl_next = s_matrix[to_add_idx+1];
+				
+				to_add_value = to_add_value_next;
+				to_add_value_next = t_matrix[to_add_idx+1];
+			}
+		}
+		else
+		{	
+			output_matrix[idx] = value;
+		
+			idx += size;
+			// Sprawdzanie czy idx nie przekroczył idx_max
+			// Zanim odczytamy dane.
+			idx_max_flag = idx < idx_max ? 0 : 1;
+			if(idx_max_flag)
+			{
+				break;
+			}
+			wavelength = x_matrix[idx];
+			value = y_matrix[idx];
+		}	
+	}
+	
+	while(idx < idx_max)
+	{
+		value = y_matrix[idx];
+		output_matrix[idx] = value; 
+		idx += size;
+	}	
+}
+
+
+
 extern "C"
 void generateWavelengths(
   double* h_output,
-  double4* params,
+  const double4* h_params,
   const size_t spectrum_number
 ) 
 {
-  double* d_output = 0, d_params;
+  double *d_output = 0;
+  double4 *d_params = 0;
   checkCudaErrors(cudaSetDevice(0));
-  checkCudaErrors(cudaMalloc(d_output), spectrum_number * ASTRO_OBJ_SIZE * sizeof(double));
-  checkCudaErrors(cudaMalloc(d_params), spectrum_size * sizeof(double4));
+  const size_t matrix_size = spectrum_number * ASTRO_OBJ_SIZE * sizeof(double);
+  checkCudaErrors(cudaMalloc((void**)&d_output, matrix_size));
+  checkCudaErrors(cudaMalloc((void**)&d_params, spectrum_number * sizeof(double4)));
+  checkCudaErrors(cudaMemcpy(d_params, h_params, spectrum_number * sizeof(double4), cudaMemcpyHostToDevice));
+  dim3 threadsPerBlock(1, 512);
+  dim3 blocksPerGrid(1, 1);
+  blocksPerGrid.x = spectrum_number / threadsPerBlock.x;
+  blocksPerGrid.y = ASTRO_OBJ_SIZE / threadsPerBlock.y;
+  printf("x %d y %d", blocksPerGrid.x,  blocksPerGrid.y);
+  generateWavelengthsMatrix<<<blocksPerGrid, threadsPerBlock>>>(d_output, d_params);
+  checkCudaErrors(cudaGetLastError());
+  checkCudaErrors(cudaMemcpy(h_output, d_output, matrix_size, cudaMemcpyDeviceToHost));
+  cudaFree(d_output);
+  cudaFree(d_params);
+}
+
+extern "C"
+void singleInterpolation(
+    double *h_matrix_x,
+    double *h_matrix_y,
+    size_t *h_sizes_x,
+    const size_t size, // number of quasars(coln)
+    double *h_matrix_s,
+    double *h_matrix_t,
+    const size_t size_s,
+    double *h_output
+) {
+  double *d_matrix_x, *d_matrix_y, *d_matrix_s, *d_matrix_t, *d_output;
+  size_t *d_sizes_y;
+  const size_t x_matrix_size = size * ASTRO_OBJ_SIZE * sizeof(double);
   
+  checkCudaErrors(cudaMalloc((void**)&d_output, x_matrix_size));
+  checkCudaErrors(cudaMalloc((void**)&d_matrix_x, x_matrix_size));
+  checkCudaErrors(cudaMalloc((void**)&d_matrix_y, x_matrix_size));
+  
+  checkCudaErrors(cudaMalloc((void**)&d_sizes_y, size * sizeof(double)));
+  
+  checkCudaErrors(cudaMalloc((void**)&d_matrix_s, x_matrix_size));
+  checkCudaErrors(cudaMalloc((void**)&d_matrix_t, x_matrix_size));
+  
+  checkCudaErrors(cudaMemcpy(d_matrix_x, h_matrix_x, x_matrix_size, cudaMemcpyHostToDevice));
+  checkCudaErrors(cudaMemcpy(d_matrix_y, h_matrix_y, x_matrix_size, cudaMemcpyHostToDevice));
+  checkCudaErrors(cudaMemcpy(d_matrix_s, h_matrix_s, x_matrix_size, cudaMemcpyHostToDevice));
+  checkCudaErrors(cudaMemcpy(d_matrix_t, h_matrix_t, x_matrix_size, cudaMemcpyHostToDevice));
+  
+  const uint threadsPerBlock = 16;
+  const uint blocksPerGrid = calculateBlockNumber(size, threadsPerBlock);
+  
+  single_interpolation<<<blocksPerGrid, threadsPerBlock>>>(d_matrix_x,d_matrix_y,
+    d_sizes_y,
+    size,
+    d_matrix_s,
+    d_matrix_t,
+    size_s,
+    d_output
+    );
+  checkCudaErrors(cudaGetLastError());
+  checkCudaErrors(cudaMemcpy(h_output, d_output, x_matrix_size, cudaMemcpyDeviceToHost));
+  cudaFree(d_matrix_x);
+  cudaFree(d_matrix_y);
+  cudaFree(d_matrix_s);
+  cudaFree(d_matrix_t);
+  cudaFree(d_output);
+  cudaFree(d_sizes_y);
 }

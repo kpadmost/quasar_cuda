@@ -25,6 +25,14 @@ getFluxMatrix <- function(quasars, complemented=T)
   getMatrixFromVector(quasars, 'flux', complemented)
 }
 
+#' @export
+getSizesVector <- function(quasars, complemented=T) {
+  data <- sapply(lapply(quasars,  `[[`, 'flux'), length)
+  if(complemented)
+    data <- complementVector(data)
+  data
+}
+
 
 #' @export
 getErrorMatrix <- function(quasars, complemented=T) 
@@ -51,7 +59,9 @@ getLambdaParams <- function(quasars, complemented=T) {
 }
 
 complementVector <- function(sVector) {
-  size <- length(sVe)
+  size <- length(sVector)
+  complementedSize <- BLOCK_SIZE  - (size %% BLOCK_SIZE)
+  c(sVector, rep(ASTRO_OBJ_SIZE, complementedSize))
 }
 
 complementMatrix <- function(sMatrix) {

@@ -75,15 +75,27 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// cppMovingAverage
+NumericMatrix cppMovingAverage(const NumericMatrix& inputMatrix, const IntegerVector& colsSizeVector, uint windowSize);
+RcppExport SEXP _QuasarFitCuda_cppMovingAverage(SEXP inputMatrixSEXP, SEXP colsSizeVectorSEXP, SEXP windowSizeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type inputMatrix(inputMatrixSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type colsSizeVector(colsSizeVectorSEXP);
+    Rcpp::traits::input_parameter< uint >::type windowSize(windowSizeSEXP);
+    rcpp_result_gen = Rcpp::wrap(cppMovingAverage(inputMatrix, colsSizeVector, windowSize));
+    return rcpp_result_gen;
+END_RCPP
+}
 // cppGenerateWavelenghtMatrix
-NumericMatrix cppGenerateWavelenghtMatrix(SEXP params, const unsigned int size);
-RcppExport SEXP _QuasarFitCuda_cppGenerateWavelenghtMatrix(SEXP paramsSEXP, SEXP sizeSEXP) {
+NumericMatrix cppGenerateWavelenghtMatrix(SEXP params);
+RcppExport SEXP _QuasarFitCuda_cppGenerateWavelenghtMatrix(SEXP paramsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< SEXP >::type params(paramsSEXP);
-    Rcpp::traits::input_parameter< const unsigned int >::type size(sizeSEXP);
-    rcpp_result_gen = Rcpp::wrap(cppGenerateWavelenghtMatrix(params, size));
+    rcpp_result_gen = Rcpp::wrap(cppGenerateWavelenghtMatrix(params));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -95,7 +107,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_QuasarFitCuda_cppMatrixDivideMatrix", (DL_FUNC) &_QuasarFitCuda_cppMatrixDivideMatrix, 2},
     {"_QuasarFitCuda_cppMatrixMultiplyCol", (DL_FUNC) &_QuasarFitCuda_cppMatrixMultiplyCol, 2},
     {"_QuasarFitCuda_cppMatrixTranspose", (DL_FUNC) &_QuasarFitCuda_cppMatrixTranspose, 1},
-    {"_QuasarFitCuda_cppGenerateWavelenghtMatrix", (DL_FUNC) &_QuasarFitCuda_cppGenerateWavelenghtMatrix, 2},
+    {"_QuasarFitCuda_cppMovingAverage", (DL_FUNC) &_QuasarFitCuda_cppMovingAverage, 3},
+    {"_QuasarFitCuda_cppGenerateWavelenghtMatrix", (DL_FUNC) &_QuasarFitCuda_cppGenerateWavelenghtMatrix, 1},
     {NULL, NULL, 0}
 };
 
