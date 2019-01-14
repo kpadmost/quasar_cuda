@@ -1,5 +1,20 @@
 library(QuasarFitCuda)
 
+continuumFitting <- function() {
+  
+}
+
+feFitting <- function() {
+  
+}
+
+elementFitting <- function() {
+  
+}
+
+loadMatrices <- function() {
+  
+}
 
 testFitting <- function() {
   # load n spectra
@@ -13,14 +28,44 @@ testFitting <- function() {
   fluxMatrix <- getFluxMatrix(quasars)
   errorMatrix <- getErrorMatrix(quasars)
   sizesVector <- getSizesVector(quasars)
+  
   params <- getLambdaParams(quasars)
   wm <- cppGenerateWavelenghtMatrix(params)
-  wm <- t(wm) #TODO: fix!!!!!!
-  flux <- cppMovingAverage(fluxMatrix, sizesVector, 10)
+  wm <- t(wm)
+  #testFittingQ()
+  fluxMatrix <- cppMovingAverage(fluxMatrix, sizesVector, 10)
+  matrices <- cppFilterWithValues(wm, fluxMatrix, errorMatrix, sizesVector)
+  flux <- matrices$spectrumsMatrix
+  wavelength <- matrices$wavelengthMatrix
   f1 <- flux[1,]
   l1 <- wm[1,]
   print('finish')
 
+}
+
+testFittingQ <- function() {
+  # load n spectra
+  quas_list <- 'quasar_list'
+  folder <- 'spectra'
+  quasars <- loadQuasarsFromFolder(folder, quas_list)
+  # fill till blockSize with 0 -s
+  #q
+  params <- getLambdaParams(quasars)
+  wm <- cppGenerateWavelenghtMatrix(params)
+  wm <- t(wm)
+
+  list(
+      flux = getFluxMatrix(quasars),
+      error = getErrorMatrix(quasars),
+      lambda = wm,
+      sizes = getSizesVector(quasars)
+  )
+}
+
+testFQ <- function() {
+  library(QuasarFitCuda)
+  m <- testFittingQ()
+  cppFilterWithValues(m$lambda, m$flux, m$error, m$sizes)
 }
 
 qP <- function() {

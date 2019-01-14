@@ -8,6 +8,10 @@
 namespace Rcpp {
   template <> double4 as (SEXP);
   template <> SEXP wrap(const double4& obj);
+  
+  // use builtin cudas
+  template <> double2 as (SEXP);
+  template <> SEXP wrap(const double2& obj);
 }
 #include <Rcpp.h>
 #endif

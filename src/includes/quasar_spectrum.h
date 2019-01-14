@@ -22,4 +22,13 @@ void singleInterpolation(
     double *h_output
 );
 
+extern "C"
+void filterNonpositive(
+    double *h_spectrums,
+    double *h_wavelength,
+    double *h_errors,
+    const size_t *real_sizes,
+    const size_t width
+);
+
 #endif

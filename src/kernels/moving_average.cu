@@ -129,4 +129,7 @@ void movingAverage( // centered moving average
     cudaDeviceSynchronize();
     checkCudaErrors(cudaGetLastError());
     checkCudaErrors(cudaMemcpy(h_output, d_output, matrix_size, cudaMemcpyDeviceToHost));
+    cudaFree(d_input);
+    cudaFree(d_output);
+    cudaFree(d_cols);
 }

@@ -5,6 +5,7 @@
 #include <device_launch_parameters.h>
 #include <stdio.h>
 #include <iostream>
+#include <math_constants.h>
 //TODO: camelcase, code author
 
 #define BLOCK_DIM 16

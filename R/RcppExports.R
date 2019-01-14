@@ -33,3 +33,7 @@ cppGenerateWavelenghtMatrix <- function(params) {
     .Call('_QuasarFitCuda_cppGenerateWavelenghtMatrix', PACKAGE = 'QuasarFitCuda', params)
 }
 
+cppFilterWithValues <- function(wavelengthMatrix, spectrumMatrix, errorMatrix, sizes) {
+    .Call('_QuasarFitCuda_cppFilterWithValues', PACKAGE = 'QuasarFitCuda', wavelengthMatrix, spectrumMatrix, errorMatrix, sizes)
+}
+

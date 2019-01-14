@@ -21,4 +21,19 @@ namespace Rcpp {
     result[3] = obj.w;
     return result;
   }
+  
+  template <> double2 as (SEXP vec_) {
+    NumericVector vector(vec_);
+    double2 res;
+    res.x = vector[0];
+    res.y = vector[1];
+    return res;
+  };
+  
+  template <> SEXP wrap(const double2& obj) {
+    NumericVector result(2);
+    result[0] = obj.x;
+    result[1] = obj.y;
+    return result;
+  }
 }

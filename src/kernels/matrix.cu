@@ -143,7 +143,7 @@ __global__ void matrix_transpose(double *idata, double *odata, int width, int he
 	yIndex = blockIdx.x * BLOCK_DIM + threadIdx.y;
 	if((xIndex < height) && (yIndex < width))
 	{
-		unsigned int index_out = yIndex * height + xIndex;
+		unsigned int index_out = yIndex * width + xIndex;
 		odata[index_out] = block[threadIdx.x][threadIdx.y];
 	}
 }
