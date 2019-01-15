@@ -5,6 +5,58 @@
 
 using namespace Rcpp;
 
+// cppCountNInfSize
+IntegerVector cppCountNInfSize(const NumericMatrix& inputMatrix);
+RcppExport SEXP _QuasarFitCuda_cppCountNInfSize(SEXP inputMatrixSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type inputMatrix(inputMatrixSEXP);
+    rcpp_result_gen = Rcpp::wrap(cppCountNInfSize(inputMatrix));
+    return rcpp_result_gen;
+END_RCPP
+}
+// cppCopyNInf
+NumericMatrix cppCopyNInf(const NumericMatrix& inputMatrix, const size_t newHeight);
+RcppExport SEXP _QuasarFitCuda_cppCopyNInf(SEXP inputMatrixSEXP, SEXP newHeightSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type inputMatrix(inputMatrixSEXP);
+    Rcpp::traits::input_parameter< const size_t >::type newHeight(newHeightSEXP);
+    rcpp_result_gen = Rcpp::wrap(cppCopyNInf(inputMatrix, newHeight));
+    return rcpp_result_gen;
+END_RCPP
+}
+// cppFilterWithValues
+List cppFilterWithValues(const NumericMatrix& wavelengthMatrix, const NumericMatrix& spectrumMatrix, const NumericMatrix& errorMatrix, const NumericVector& sizes);
+RcppExport SEXP _QuasarFitCuda_cppFilterWithValues(SEXP wavelengthMatrixSEXP, SEXP spectrumMatrixSEXP, SEXP errorMatrixSEXP, SEXP sizesSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type wavelengthMatrix(wavelengthMatrixSEXP);
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type spectrumMatrix(spectrumMatrixSEXP);
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type errorMatrix(errorMatrixSEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type sizes(sizesSEXP);
+    rcpp_result_gen = Rcpp::wrap(cppFilterWithValues(wavelengthMatrix, spectrumMatrix, errorMatrix, sizes));
+    return rcpp_result_gen;
+END_RCPP
+}
+// cppFilterWithWavelengthWindows
+List cppFilterWithWavelengthWindows(const NumericMatrix& wavelengthsMatrix, const NumericMatrix& spectrumsMatrix, const NumericMatrix& errorsMatrix, const IntegerVector& sizesVectorR, SEXP continuumWindowsVectorR);
+RcppExport SEXP _QuasarFitCuda_cppFilterWithWavelengthWindows(SEXP wavelengthsMatrixSEXP, SEXP spectrumsMatrixSEXP, SEXP errorsMatrixSEXP, SEXP sizesVectorRSEXP, SEXP continuumWindowsVectorRSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type wavelengthsMatrix(wavelengthsMatrixSEXP);
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type spectrumsMatrix(spectrumsMatrixSEXP);
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type errorsMatrix(errorsMatrixSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type sizesVectorR(sizesVectorRSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type continuumWindowsVectorR(continuumWindowsVectorRSEXP);
+    rcpp_result_gen = Rcpp::wrap(cppFilterWithWavelengthWindows(wavelengthsMatrix, spectrumsMatrix, errorsMatrix, sizesVectorR, continuumWindowsVectorR));
+    return rcpp_result_gen;
+END_RCPP
+}
 // cppMatrixLog10
 SEXP cppMatrixLog10(Rcpp::NumericMatrix inputMatrix);
 RcppExport SEXP _QuasarFitCuda_cppMatrixLog10(SEXP inputMatrixSEXP) {
@@ -99,22 +151,12 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// cppFilterWithValues
-List cppFilterWithValues(const NumericMatrix& wavelengthMatrix, const NumericMatrix& spectrumMatrix, const NumericMatrix& errorMatrix, const NumericVector& sizes);
-RcppExport SEXP _QuasarFitCuda_cppFilterWithValues(SEXP wavelengthMatrixSEXP, SEXP spectrumMatrixSEXP, SEXP errorMatrixSEXP, SEXP sizesSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const NumericMatrix& >::type wavelengthMatrix(wavelengthMatrixSEXP);
-    Rcpp::traits::input_parameter< const NumericMatrix& >::type spectrumMatrix(spectrumMatrixSEXP);
-    Rcpp::traits::input_parameter< const NumericMatrix& >::type errorMatrix(errorMatrixSEXP);
-    Rcpp::traits::input_parameter< const NumericVector& >::type sizes(sizesSEXP);
-    rcpp_result_gen = Rcpp::wrap(cppFilterWithValues(wavelengthMatrix, spectrumMatrix, errorMatrix, sizes));
-    return rcpp_result_gen;
-END_RCPP
-}
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_QuasarFitCuda_cppCountNInfSize", (DL_FUNC) &_QuasarFitCuda_cppCountNInfSize, 1},
+    {"_QuasarFitCuda_cppCopyNInf", (DL_FUNC) &_QuasarFitCuda_cppCopyNInf, 2},
+    {"_QuasarFitCuda_cppFilterWithValues", (DL_FUNC) &_QuasarFitCuda_cppFilterWithValues, 4},
+    {"_QuasarFitCuda_cppFilterWithWavelengthWindows", (DL_FUNC) &_QuasarFitCuda_cppFilterWithWavelengthWindows, 5},
     {"_QuasarFitCuda_cppMatrixLog10", (DL_FUNC) &_QuasarFitCuda_cppMatrixLog10, 1},
     {"_QuasarFitCuda_cppMatrixAddScalar", (DL_FUNC) &_QuasarFitCuda_cppMatrixAddScalar, 2},
     {"_QuasarFitCuda_cppMatrixMinusMatrix", (DL_FUNC) &_QuasarFitCuda_cppMatrixMinusMatrix, 2},
@@ -123,7 +165,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_QuasarFitCuda_cppMatrixTranspose", (DL_FUNC) &_QuasarFitCuda_cppMatrixTranspose, 1},
     {"_QuasarFitCuda_cppMovingAverage", (DL_FUNC) &_QuasarFitCuda_cppMovingAverage, 3},
     {"_QuasarFitCuda_cppGenerateWavelenghtMatrix", (DL_FUNC) &_QuasarFitCuda_cppGenerateWavelenghtMatrix, 1},
-    {"_QuasarFitCuda_cppFilterWithValues", (DL_FUNC) &_QuasarFitCuda_cppFilterWithValues, 4},
     {NULL, NULL, 0}
 };
 

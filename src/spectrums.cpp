@@ -59,38 +59,5 @@ NumericMatrix cppSingleInterpolation(NumericMatrix xMatrix, NumericMatrix yMatri
 
 //TODO:considerGrThan
 
-// [[Rcpp::export]]
-List cppFilterWithValues(
-    const NumericMatrix& wavelengthMatrix, 
-    const NumericMatrix& spectrumMatrix, 
-    const NumericMatrix& errorMatrix, 
-    const NumericVector& sizes)
-{
-    const size_t width = spectrumMatrix.ncol();
-    Rcout << " w " << width;
-    const size_t height = spectrumMatrix.nrow();
-    std::vector<size_t> real_sizes(sizes.size());
-    std::copy(sizes.begin(), sizes.end(), real_sizes.begin());
-    
-    NumericMatrix wavelengthMatrix_c(wavelengthMatrix); 
-    NumericMatrix spectrumMatrix_c(spectrumMatrix); 
-    NumericMatrix errorMatrix_c(errorMatrix);
-    try {
-    filterNonpositive(
-      &spectrumMatrix_c[0],
-      &wavelengthMatrix_c[0],
-      &wavelengthMatrix_c[0],
-      &real_sizes[0],
-      height
-    );
-    } catch(const std::runtime_error& e) {
-      Rcpp::Rcout << e.what();
-      exit(1);
-    }
-    return List::create(
-      Named("wavelengthMatrix") = wavelengthMatrix_c,
-      Named("spectrumsMatrix") = spectrumMatrix_c,
-      Named("errorsMatrix") = errorMatrix_c
-    );
-}
+
 

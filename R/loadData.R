@@ -1,5 +1,3 @@
-
-
 loadWindows <- function(filename) {
   raw <- readLines(filename)
   raw <- raw[sapply(raw, nchar) > 0]
@@ -9,37 +7,47 @@ loadWindows <- function(filename) {
   })
 }
 
-#TODO: remove!
 #' @export
-qP <- function() {
-  d1 <- list(c(3.57840, 0.00010, 1.80677, 0.00000))
-  d2 <- list(c(3.57900, 0.00010, 1.51807, 0.00000))
-  dm <- list(rep(0, 4))
-  lmx <- rep(dm, 30)
-  c(d1, d2, lmx)
+loadDefaultFeTemplate <- function() {
+  template <- system.file("data", "iron_emission_temp.bin", package = "QuasarRfit")
+  loadFeTemplate(template)
 }
 
-#' @export
 loadFeTemplate <- function(filename='iron_emission_temp.bin') {
   template <- read.delim(filename, header = F, sep = " ")
   lambda <- as.double(template[, 1])
   flux <- as.double(template[, 3])
   # transposing template
-  return(list(lambda=lambda, flux=flux))
+  list(lambda=lambda, flux=flux)
 }
 
 #' @export
-loadContinuumWindows <- function(file='contwind') {
+loadDefaultContinuumWindows <- function() {
+  windows <- system.file("data", 'contwind', package = "QuasarRfit")
+  loadContinuumWindows(windows)
+}
+
+loadContinuumWindows <- function(file) {
   loadWindows(file)
 }
 
 #' @export
-loadFeWindows <- function(file='iron_emission_windows') {
+loadDefaultFeWindows <- function() {
+  windows <- system.file("data", 'iron_emission_windows', package = "QuasarRfit")
+  loadFeWindows(windows)
+}
+
+loadFeWindows <- function(file) {
   loadWindows(file)
 }
 
 #' @export
-loadElements <- function(file='spectral_lines') {
+loadDefaultSpectralLines <- function() {
+  lines <- system.file("data", 'spectral_lines', package = "QuasarRfit")
+  loadSpectralLines(lines)
+}
+
+loadSpectralLines <- function(file) {
   read.table(file,
              header= F,
              col.names = c('name', 'left', 'right', 'a', 'b', 'c'),
@@ -47,12 +55,12 @@ loadElements <- function(file='spectral_lines') {
   
 }
 
-#' @export
-loadFeFitParams <- function() {
+loadDefaultFeFitParams <- function() {
   list(
     fwhmn = 1600.0,
     fwhmt = 900.0,
     feFitRange = c(2200.0, 2650.0),
+    isSubC = FALSE,
     fitType="fwin"
   )
 }

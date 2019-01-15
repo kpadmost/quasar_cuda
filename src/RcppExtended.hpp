@@ -2,10 +2,13 @@
 #define RCPPEXTENDED_HPP
 
 #include <RcppCommon.h>
-
+#include "kernels/cuda_rcpp_common.h"
 #include <builtin_types.h>
 
 namespace Rcpp {
+template <> double8 as (SEXP);
+  template <> SEXP wrap(const double8& obj);
+
   template <> double4 as (SEXP);
   template <> SEXP wrap(const double4& obj);
   

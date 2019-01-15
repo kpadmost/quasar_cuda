@@ -1,7 +1,30 @@
 library(QuasarFitCuda)
 
-continuumFitting <- function() {
+continuumFitting <- function(wavelengthsMatrix, spectrumsMatrix, errorsMatrix, sizesVector, fitParams) {
   
+  filteredMatrices <- cppFilterWithWavelengthWindows(
+    wavelengthsMatrix,
+    spectrumsMatrix,
+    errorsMatrix,
+    sizesVector,
+    continuumWindowsVectorR = fitParams$windows
+  )
+  # filter again for non-logarithmic values
+  filteredMatrices <- cppFilterWithValues(
+    filteredMatrices$wavelengthsMatrix,
+    filteredMatrices$spectrumsMatrix,
+    filteredMatrices$errorsMatrix,
+    sizesVector
+  )
+  sizesModified <- cppCountNInfSize(filteredMatrices$spectrumsMatrix)
+  maxSize <- max(sizesModified)
+  
+  filteredWavelenghts <- cppCopyNInf(filteredMatrices$wavelengthsMatrix, maxSize)
+  filteredSpectrums <- cppCopyNInf(filteredMatrices$spectrumsMatrix, maxSize)
+  filteredErrors <- cppCopyNInf(filteredMatrices$errorsMatrix, maxSize)
+  
+  
+  print('here')
 }
 
 feFitting <- function() {
@@ -21,24 +44,39 @@ testFitting <- function() {
   quas_list <- 'quasar_list'
   folder <- 'spectra'
   quasars <- loadQuasarsFromFolder(folder, quas_list)
-  # fill till blockSize with 0 -s
-  #q
-  #
-  #
+  continuumParams <- list(
+    windows = loadDefaultContinuumWindows(),
+    lambdaAmplitude = 900.0
+  )
   fluxMatrix <- getFluxMatrix(quasars)
   errorMatrix <- getErrorMatrix(quasars)
   sizesVector <- getSizesVector(quasars)
   
   params <- getLambdaParams(quasars)
-  wm <- cppGenerateWavelenghtMatrix(params)
-  wm <- t(wm)
+  wavelengthsMatrix <- cppGenerateWavelenghtMatrix(params)
+  #TODO: correct!
+  wavelengthsMatrix <- t(wavelengthsMatrix)
   #testFittingQ()
   fluxMatrix <- cppMovingAverage(fluxMatrix, sizesVector, 10)
-  matrices <- cppFilterWithValues(wm, fluxMatrix, errorMatrix, sizesVector)
-  flux <- matrices$spectrumsMatrix
-  wavelength <- matrices$wavelengthMatrix
-  f1 <- flux[1,]
-  l1 <- wm[1,]
+  
+  # filtering non-negative values
+  filteredMatrices <- cppFilterWithValues(wavelengthsMatrix, fluxMatrix, errorMatrix, sizesVector)
+  sizesVector <- cppCountNInfSize(filteredMatrices$spectrumsMatrix)
+  filteredSpectrums <- rFilterInfs(filteredMatrices$spectrumsMatrix)
+  filteredWavelengths <- rFilterInfs(filteredMatrices$wavelengthsMatrix)
+  filteredErrors <- rFilterInfs(filteredMatrices$errorsMatrix)
+  
+  for(i in seq(1:3)) {
+    continuumResult <- continuumFitting(
+      filteredWavelengths,
+      filteredSpectrums,
+      filteredErrors,
+      sizesVector,
+      continuumParams
+    )
+  }
+  
+  
   print('finish')
 
 }
