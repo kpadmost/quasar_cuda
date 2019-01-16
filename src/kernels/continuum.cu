@@ -125,21 +125,21 @@ void calculateDcfun(
   double *h_dcfuns,
   double *h_cfuns,
   const double8 *h_reglin, 	// Parametry prostej regresji liniowej
-	const double8 *h_creglin 	// Parametry prostej regresji liniowej
+	const double8 *h_creglin, 	// Parametry prostej regresji liniowej
   const size_t width,
   const size_t height
 )
 {
   // allocating kernel data
   double *d_wavelengths, *d_dcfuns, *d_cfuns;
-  double8 *d_reglin, d_creglin;
+  double8 *d_reglin, *d_creglin;
   const size_t matrix_size = width * height * sizeof(double);
   const size_t vector_size = width * sizeof(double8);
   checkCudaErrors(cudaMalloc((void**)&d_wavelengths, matrix_size));
   checkCudaErrors(cudaMalloc((void**)&d_dcfuns, matrix_size));
   checkCudaErrors(cudaMalloc((void**)&d_cfuns, matrix_size));
   checkCudaErrors(cudaMalloc((void**)&d_reglin, vector_size));
-  checkCudaErrors(cudaMalloc((void**)&d_input, vector_size));
+  checkCudaErrors(cudaMalloc((void**)&d_creglin, vector_size));
   // copying data
   checkCudaErrors(cudaMemcpy(d_wavelengths, h_wavelengths, matrix_size, cudaMemcpyHostToDevice));
   checkCudaErrors(cudaMemcpy(d_reglin, h_reglin, vector_size, cudaMemcpyHostToDevice));
