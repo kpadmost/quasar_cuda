@@ -29,7 +29,7 @@ inline uint calculateBlockNumber(const size_t size, const uint thrPerBlock) {
   const uint rem = (size % thrPerBlock);
   uint global = size;
   if(rem > 0 )
-    global +=  global + thrPerBlock - rem ;
+    global += thrPerBlock - rem ;
   return global / thrPerBlock;
 }
 

@@ -2,24 +2,16 @@
 #include <iterator>
 #include <array>
 #include <algorithm>
-#include "tools.hpp"
 #include "includes/matrix.h"
 
 // [[Rcpp::export]]
-SEXP cppMatrixLog10(Rcpp::NumericMatrix inputMatrix) {
-  const size_t width = inputMatrix.cols();   //długość widma
-  const size_t height = inputMatrix.rows();  //liczba kwazarów
-  const size_t N = width * height;
-  double* h_input = quasarCuda::RcppNumericMatrixToCArray(inputMatrix);
-  matrixLog10(h_input, height, width);
-  // todo: add conversion function
-  // copy 
-  // cl::Buffer bufferInput = cl::Buffer(context, CL_MEM_READ_WRITE, N * sizeof(cl_double));
-  // cl::copy(queue, inputMatrix.begin(), inputMatrix.end(), bufferInput);
-  // 
-  // quasarcl::log10(*quasarclPtr, bufferInput, height, width);
-  // 
-  return inputMatrix;
+Rcpp::NumericMatrix cppMatrixLog10(const Rcpp::NumericMatrix& inputMatrix) {
+  const size_t width = inputMatrix.rows();   //number of quas
+  const size_t height = inputMatrix.cols();  //length of spectrum
+  Rcpp::NumericMatrix result = Rcpp::clone(inputMatrix);
+  matrixLog10(&result[0], width, height);
+
+  return result;
 }
 
 // [[Rcpp::export]]
@@ -27,8 +19,7 @@ SEXP cppMatrixAddScalar(Rcpp::NumericMatrix inputMatrix, double scalar) {
   const size_t width = inputMatrix.cols();   //długość widma
   const size_t height = inputMatrix.rows();  //liczba kwazarów
   
-  double* h_input = quasarCuda::RcppNumericMatrixToCArray(inputMatrix);
-  matrixAddScalar(h_input, width, height, scalar);
+  matrixAddScalar(&inputMatrix[0], width, height, scalar);
   // todo: add conversion function
   return inputMatrix;
 }
@@ -40,10 +31,8 @@ SEXP cppMatrixMinusMatrix(
 ) {
   const size_t width = inputMatrix.cols();   //długość widma
   const size_t height = inputMatrix.rows();  //liczba kwazarów
-  const double* h_input = quasarCuda::RcppNumericMatrixToCArray(inputMatrix);
-  const double* h_substrahend = quasarCuda::RcppNumericMatrixToCArray(substrahendMatrix);
   Rcpp::NumericMatrix result(inputMatrix.nrow(), inputMatrix.ncol());
-  matrixSubstractMatrix(h_input, h_substrahend, &result[0], width, height);
+  matrixSubstractMatrix(&inputMatrix[0], &substrahendMatrix[0], &result[0], width, height);
 
   return result;
 }
@@ -57,16 +46,11 @@ SEXP cppMatrixDivideMatrix(
   const size_t height = inputMatrix.rows();  //liczba kwazarów
   
   //TODO: check rows/cols?
-  const double* h_input = quasarCuda::RcppNumericMatrixToCArray(inputMatrix);
-  // for(int col = 0; col < width; ++col)
-  //   for(int row = 0; row < height; ++row)
-  //     Rcpp::Rcout << "m r " << row << " c " << col << " v " << h_input[col * height + row] << std::endl;
-  const double* h_divisor = quasarCuda::RcppNumericMatrixToCArray(divisorMatrix);
   double* h_result = new double[width * height]; 
-  
-  matrixDivideMatrix(h_input, h_divisor, h_result, width, height);
+  Rcpp::NumericMatrix output(height, width);
+  matrixDivideMatrix(&inputMatrix[0], &divisorMatrix[0], &output[0], width, height);
 
-  return quasarCuda::CArrayToRcppNumericMatrix(h_result, height, width);
+  return output;
 }
 
 //matrixMultiplyColVector
@@ -80,10 +64,7 @@ SEXP cppMatrixMultiplyCol(
   const size_t height = inputMatrix.rows();  //liczba kwazarów
   const size_t length = vector.size();
   Rcpp::NumericMatrix result(width, height);
-  double* output = quasarCuda::RcppNumericMatrixToCArray(result);
-  double* input = quasarCuda::RcppNumericMatrixToCArray(inputMatrix);
-  double* vectorA = quasarCuda::RcppNumericVectorToCArray(vector);
-  matrixMultiplyColVector(input, output, vectorA, width, height, length);
+  matrixMultiplyColVector(&inputMatrix[0], &result[0], &vector[0], width, height, length);
   return result;
 }
 

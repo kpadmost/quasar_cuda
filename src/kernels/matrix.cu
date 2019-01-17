@@ -15,7 +15,7 @@ __global__ void matrix_log10
 	uint gid0 = blockIdx.x * blockDim.x + threadIdx.x;
 	// gid1 - numer elementu w wierszu.
 	uint gid1 = blockIdx.y * blockDim.y + threadIdx.y;
-	if(gid1 >= row_size || gid0 >= col_size)
+	if(gid1 >= row_size)
 	{
 		return;
 	}
@@ -239,19 +239,16 @@ void matrixLog10(double* h_input, const size_t width, size_t height)
 {
     double *d_input = 0;
     size_t size = width * height * sizeof(double);
-    //initialize device 
-    checkCudaErrors(cudaSetDevice(0));
   
     // device memory allocation
     checkCudaErrors(cudaMalloc((void**)&d_input, size));
     // device memory copying
     checkCudaErrors(cudaMemcpy(d_input, h_input, size, cudaMemcpyHostToDevice));
     //kernel invocation
-    dim3 threadsPerBlock(16, 16);
-    dim3 blocksPerGrid(1, 1);
-    blocksPerGrid.x = ceil(double(width)/double(threadsPerBlock.x));
-    blocksPerGrid.y = ceil(double(height)/double(threadsPerBlock.y));
+    dim3 threadsPerBlock(1, BLOCK_DIM);
+    dim3 blocksPerGrid(height, calculateBlockNumber(width, threadsPerBlock.y));
     matrix_log10<<<blocksPerGrid, threadsPerBlock>>>(d_input, width, height);
+    cudaDeviceSynchronize();
     checkCudaErrors(cudaGetLastError());
     //device to host memory copy
     checkCudaErrors(cudaMemcpy(h_input, d_input, size, cudaMemcpyDeviceToHost));

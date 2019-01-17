@@ -225,8 +225,8 @@ void fixContinuumReglin(
   cudaDeviceSynchronize();
   checkCudaErrors(cudaGetLastError());
   //copying memory back
-  checkCudaErrors(cudaMemcpy(d_reglin, h_reglin, vector_size, cudaMemcpyDeviceToHost));
-  checkCudaErrors(cudaMemcpy(d_continuum_reglin, h_continuum_reglin, vector_size, cudaMemcpyDeviceToHost));
+  checkCudaErrors(cudaMemcpy(h_reglin, d_reglin, vector_size, cudaMemcpyDeviceToHost));
+  checkCudaErrors(cudaMemcpy(h_continuum_reglin, d_continuum_reglin, vector_size, cudaMemcpyDeviceToHost));
   // free memory
   cudaFree(d_reglin);
   cudaFree(d_continuum_reglin);

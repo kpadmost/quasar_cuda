@@ -47,6 +47,7 @@ double4 double4Op(const double4 a, const double4 b, F f) {
 //
 //
 // Struktura wyniku: (a, b, sia2, sib2, siy2, x_sum, x^2_sum, y_sum)
+// done
 __global__
 void reglin(
   const double * xs,	// Macierz x'ów
@@ -80,17 +81,20 @@ void reglin(
 	while (idx < idx_max) 
 	{
 		double4 t, u;
-		const double x = xs[idx], y = ys[idx];
+		const double x = xs[idx];
+		const double y = ys[idx];
 
 		u = double4Op(cDouble4(x, pow(x, 2), y, x*y), c1, cuda_minus<double>());
 		t = double4Op(cDouble4(x_sum, x2_sum, y_sum, xy_sum), u, cuda_plus<double>());
+		const double4 tmp = double4Op(t, cDouble4(x_sum, x2_sum, y_sum, xy_sum), cuda_minus<double>());
+		c1 = double4Op(tmp, u, cuda_minus<double>());
+		
 		x_sum 	= t.x;
 		x2_sum 	= t.y;
 		y_sum	= t.z;
 		xy_sum	= t.w;
 		
-		const double4 tmp = double4Op(t, cDouble4(x_sum, x2_sum, y_sum, xy_sum), cuda_minus<double>());
-		c1 = double4Op(tmp, u, cuda_minus<double>());
+		
 
 		idx += width;
 	}
@@ -140,3 +144,177 @@ void reglin(
 	
 	results[gid] = result;
 }
+
+
+// Oblicza chisq między odpowiadającymi sobie kolumnami
+// z macierzy fs i ys.
+//
+__global__
+void chisq(
+  const double *xs,	
+	const double *ys,	
+	const double *errs,	
+  const size_t *cols_sizes, 	
+  double *results,
+  const size_t width
+) 
+{
+	const uint gid = blockIdx.x * blockDim.x + threadIdx.x;		
+	if(gid >= width)
+	{
+		return;
+	}
+
+	uint idx = gid;
+	const uint col_height = cols_sizes[gid];
+	const uint idx_max = idx + col_height * width;
+
+	double chi2 = 0.0;
+
+	while (idx < idx_max) 
+	{
+    chi2 += pow((ys[idx] - xs[idx]) / errs[idx], 2);
+		idx += width;
+	}		
+	results[gid] = chi2;
+}
+
+/*__global__
+void chisq(
+  const double *xs,	/
+	const double *ys,	// Macierz y'ów
+	const double *errs,	// Macierz błędów 
+  const size_t width,
+  const size_t *cols_sizes, 	// Tablica ilośći znaczących elememntów 
+					   	// z kolejnych kolumn macierzy input
+  double *results	// Tablica z wynikami chisq/
+	) */
+
+extern "C"
+void calculateChisq(
+  const double *h_x,
+  const double *h_y,
+  const double *h_e,
+  const size_t *h_col_sizes,
+  double *h_results,
+  const size_t width,
+  const size_t height
+) {
+  // allocating kernel data
+  double *d_x, *d_y, *d_e, *d_results;
+  size_t *d_col_sizes;
+  const size_t matrix_size = width * height * sizeof(double);
+  const size_t vector_size_t_size = width * sizeof(size_t);
+  const size_t vector_double_size = width * sizeof(double);
+  checkCudaErrors(cudaMalloc((void**)&d_x, matrix_size));
+  checkCudaErrors(cudaMalloc((void**)&d_y, matrix_size));
+  checkCudaErrors(cudaMalloc((void**)&d_e, matrix_size));
+  checkCudaErrors(cudaMalloc((void**)&d_col_sizes, vector_size_t_size));
+  checkCudaErrors(cudaMalloc((void**)&d_results, vector_double_size));
+  // copying data
+  checkCudaErrors(cudaMemcpy(d_x, h_x, matrix_size, cudaMemcpyHostToDevice));
+  checkCudaErrors(cudaMemcpy(d_y, h_y, matrix_size, cudaMemcpyHostToDevice));
+  checkCudaErrors(cudaMemcpy(d_e, h_e, matrix_size, cudaMemcpyHostToDevice));
+  checkCudaErrors(cudaMemcpy(d_col_sizes, h_col_sizes, vector_size_t_size, cudaMemcpyHostToDevice));
+  // instatiating kernel
+  const size_t threadsPerBlock = BLOCK_DIM;
+  const size_t blocksPerGrid = calculateBlockNumber(width, threadsPerBlock);
+  // calling kernel
+  chisq<<<blocksPerGrid, threadsPerBlock>>>(
+    d_x,
+    d_y,
+    d_e,
+    d_col_sizes,
+    d_results,
+    width
+  );
+  cudaDeviceSynchronize();
+  checkCudaErrors(cudaGetLastError());
+  //copying memory back
+  checkCudaErrors(cudaMemcpy(h_results, d_results, vector_double_size, cudaMemcpyDeviceToHost));
+  // free memory
+  cudaFree(d_x);
+  cudaFree(d_y);
+  cudaFree(d_e);
+  cudaFree(d_col_sizes);
+  cudaFree(d_results);
+}
+
+
+extern "C"
+void calculateReglin(
+  const double *h_x,
+  const double *h_y,
+  const size_t *h_col_sizes,
+  double8 *h_reglin_results,
+  const size_t width,
+  const size_t height
+)
+{
+  // allocating kernel data
+  double *d_x, *d_y;
+  size_t *d_col_sizes;
+  double8 *d_reglin_results;
+  const size_t matrix_size = width * height * sizeof(double);
+  const size_t result_size = width * sizeof(double8);
+  const size_t vector_size = width * sizeof(double);
+  checkCudaErrors(cudaMalloc((void**)&d_x, matrix_size));
+  checkCudaErrors(cudaMalloc((void**)&d_y, matrix_size));
+  checkCudaErrors(cudaMalloc((void**)&d_col_sizes, vector_size));
+  checkCudaErrors(cudaMalloc((void**)&d_reglin_results, result_size));
+  // copying data
+  checkCudaErrors(cudaMemcpy(d_x, h_x, matrix_size, cudaMemcpyHostToDevice));
+  checkCudaErrors(cudaMemcpy(d_y, h_y, matrix_size, cudaMemcpyHostToDevice));
+  checkCudaErrors(cudaMemcpy(d_col_sizes, h_col_sizes, vector_size, cudaMemcpyHostToDevice));
+  // instatiating kernel
+  const size_t threadsPerBlock = BLOCK_DIM;
+  const size_t blocksPerGrid = calculateBlockNumber(width, threadsPerBlock);
+  // calling kernel
+  reglin<<<blocksPerGrid, threadsPerBlock>>>(
+    d_x,
+    d_y,
+    d_col_sizes,
+    d_reglin_results,
+    width,
+    height
+  );
+  cudaDeviceSynchronize();
+  checkCudaErrors(cudaGetLastError());
+  //copying memory back
+  checkCudaErrors(cudaMemcpy(h_reglin_results, d_reglin_results, result_size, cudaMemcpyDeviceToHost));
+  // free memory
+  cudaFree(d_x);
+  cudaFree(d_y);
+  cudaFree(d_col_sizes);
+  cudaFree(d_reglin_results);
+}
+
+/* example func, copypaste as template
+extern "C"
+void template_f(
+  double *h_input,
+  double *h_output,
+  const size_t width,
+  const size_t height
+)
+{
+  // allocating kernel data
+  double *d_input, d_output;
+  const size_t matrix_size = width * height * sizeof(double);
+  checkCudaErrors(cudaMalloc((void**)&d_output, matrix_size));
+  checkCudaErrors(cudaMalloc((void**)&d_input, matrix_size));
+  // copying data
+  checkCudaErrors(cudaMemcpy(d_input, h_input, matrix_size, cudaMemcpyHostToDevice));
+  // instatiating kernel
+  const dim3 threadsPerBlock(BLOCK_DIM, BLOCK_DIM, 1);
+  const dim3 blocksPerGrid(width / threadsPerBlock.x, height / threadsPerBlock.y, 1);
+  // calling kernel
+  kernel_f<<<blocksPerGrid, threadsPerBlock>>>(d_input, d_output);
+  cudaDeviceSynchronize();
+  checkCudaErrors(cudaGetLastError());
+  //copying memory back
+  checkCudaErrors(cudaMemcpy(h_output, d_output, matrix_size, cudaMemcpyDeviceToHost));
+  // free memory
+  cudaFree(d_input);
+  cudaFree(d_output);
+}*/

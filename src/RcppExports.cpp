@@ -5,6 +5,55 @@
 
 using namespace Rcpp;
 
+// cppCalculateCfunDcfun
+List cppCalculateCfunDcfun(const NumericMatrix& wavelengthsMatrix, SEXP rReglin, SEXP rCReglin);
+RcppExport SEXP _QuasarFitCuda_cppCalculateCfunDcfun(SEXP wavelengthsMatrixSEXP, SEXP rReglinSEXP, SEXP rCReglinSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type wavelengthsMatrix(wavelengthsMatrixSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type rReglin(rReglinSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type rCReglin(rCReglinSEXP);
+    rcpp_result_gen = Rcpp::wrap(cppCalculateCfunDcfun(wavelengthsMatrix, rReglin, rCReglin));
+    return rcpp_result_gen;
+END_RCPP
+}
+// cppFixReglin
+List cppFixReglin(SEXP cReglinVector, SEXP reglinVector);
+RcppExport SEXP _QuasarFitCuda_cppFixReglin(SEXP cReglinVectorSEXP, SEXP reglinVectorSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type cReglinVector(cReglinVectorSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type reglinVector(reglinVectorSEXP);
+    rcpp_result_gen = Rcpp::wrap(cppFixReglin(cReglinVector, reglinVector));
+    return rcpp_result_gen;
+END_RCPP
+}
+// cppCalculateContinuumMatrix
+NumericMatrix cppCalculateContinuumMatrix(const NumericMatrix& wavelengthsMatrix, SEXP reglinVector);
+RcppExport SEXP _QuasarFitCuda_cppCalculateContinuumMatrix(SEXP wavelengthsMatrixSEXP, SEXP reglinVectorSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type wavelengthsMatrix(wavelengthsMatrixSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type reglinVector(reglinVectorSEXP);
+    rcpp_result_gen = Rcpp::wrap(cppCalculateContinuumMatrix(wavelengthsMatrix, reglinVector));
+    return rcpp_result_gen;
+END_RCPP
+}
+// cppReduceContinuumChisq
+NumericVector cppReduceContinuumChisq(NumericVector& chisq, const IntegerVector sizes);
+RcppExport SEXP _QuasarFitCuda_cppReduceContinuumChisq(SEXP chisqSEXP, SEXP sizesSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector& >::type chisq(chisqSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector >::type sizes(sizesSEXP);
+    rcpp_result_gen = Rcpp::wrap(cppReduceContinuumChisq(chisq, sizes));
+    return rcpp_result_gen;
+END_RCPP
+}
 // cppCountNInfSize
 IntegerVector cppCountNInfSize(const NumericMatrix& inputMatrix);
 RcppExport SEXP _QuasarFitCuda_cppCountNInfSize(SEXP inputMatrixSEXP) {
@@ -58,12 +107,12 @@ BEGIN_RCPP
 END_RCPP
 }
 // cppMatrixLog10
-SEXP cppMatrixLog10(Rcpp::NumericMatrix inputMatrix);
+Rcpp::NumericMatrix cppMatrixLog10(const Rcpp::NumericMatrix& inputMatrix);
 RcppExport SEXP _QuasarFitCuda_cppMatrixLog10(SEXP inputMatrixSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type inputMatrix(inputMatrixSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type inputMatrix(inputMatrixSEXP);
     rcpp_result_gen = Rcpp::wrap(cppMatrixLog10(inputMatrix));
     return rcpp_result_gen;
 END_RCPP
@@ -151,8 +200,39 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// cppReglin
+SEXP cppReglin(const NumericMatrix& x, const NumericMatrix& y, const IntegerVector& sizes);
+RcppExport SEXP _QuasarFitCuda_cppReglin(SEXP xSEXP, SEXP ySEXP, SEXP sizesSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type y(ySEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type sizes(sizesSEXP);
+    rcpp_result_gen = Rcpp::wrap(cppReglin(x, y, sizes));
+    return rcpp_result_gen;
+END_RCPP
+}
+// cppChisq
+NumericVector cppChisq(const NumericMatrix& x, const NumericMatrix& y, const NumericMatrix& e, const NumericVector& sizes);
+RcppExport SEXP _QuasarFitCuda_cppChisq(SEXP xSEXP, SEXP ySEXP, SEXP eSEXP, SEXP sizesSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type y(ySEXP);
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type e(eSEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type sizes(sizesSEXP);
+    rcpp_result_gen = Rcpp::wrap(cppChisq(x, y, e, sizes));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_QuasarFitCuda_cppCalculateCfunDcfun", (DL_FUNC) &_QuasarFitCuda_cppCalculateCfunDcfun, 3},
+    {"_QuasarFitCuda_cppFixReglin", (DL_FUNC) &_QuasarFitCuda_cppFixReglin, 2},
+    {"_QuasarFitCuda_cppCalculateContinuumMatrix", (DL_FUNC) &_QuasarFitCuda_cppCalculateContinuumMatrix, 2},
+    {"_QuasarFitCuda_cppReduceContinuumChisq", (DL_FUNC) &_QuasarFitCuda_cppReduceContinuumChisq, 2},
     {"_QuasarFitCuda_cppCountNInfSize", (DL_FUNC) &_QuasarFitCuda_cppCountNInfSize, 1},
     {"_QuasarFitCuda_cppCopyNInf", (DL_FUNC) &_QuasarFitCuda_cppCopyNInf, 2},
     {"_QuasarFitCuda_cppFilterWithValues", (DL_FUNC) &_QuasarFitCuda_cppFilterWithValues, 4},
@@ -165,6 +245,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_QuasarFitCuda_cppMatrixTranspose", (DL_FUNC) &_QuasarFitCuda_cppMatrixTranspose, 1},
     {"_QuasarFitCuda_cppMovingAverage", (DL_FUNC) &_QuasarFitCuda_cppMovingAverage, 3},
     {"_QuasarFitCuda_cppGenerateWavelenghtMatrix", (DL_FUNC) &_QuasarFitCuda_cppGenerateWavelenghtMatrix, 1},
+    {"_QuasarFitCuda_cppReglin", (DL_FUNC) &_QuasarFitCuda_cppReglin, 3},
+    {"_QuasarFitCuda_cppChisq", (DL_FUNC) &_QuasarFitCuda_cppChisq, 4},
     {NULL, NULL, 0}
 };
 

@@ -1,5 +1,7 @@
 library(QuasarFitCuda)
 
+
+#TODO: separate reglin kernels
 continuumFitting <- function(wavelengthsMatrix, spectrumsMatrix, errorsMatrix, sizesVector, fitParams) {
   
   filteredMatrices <- cppFilterWithWavelengthWindows(
@@ -23,7 +25,29 @@ continuumFitting <- function(wavelengthsMatrix, spectrumsMatrix, errorsMatrix, s
   filteredSpectrums <- cppCopyNInf(filteredMatrices$spectrumsMatrix, maxSize)
   filteredErrors <- cppCopyNInf(filteredMatrices$errorsMatrix, maxSize)
   
+  wavelenghtsLog10 <- cppMatrixLog10(filteredWavelenghts);
+  spectrumsLog10 <- cppMatrixLog10(filteredSpectrums);
+  cReglinResults <- cppReglin(wavelenghtsLog10, spectrumsLog10, sizesModified)
   
+  lambdaAmp <- fitParams$lambdaAmplitude
+  if(lambdaAmp > 0) {
+    lambdaAmpLog <- log10(lambdaAmp)
+    wavelenghtsLog10 <- cppMatrixAddScalar(wavelenghtsLog10, lambdaAmpLog)
+  }
+  
+  reglin <- cppReglin(wavelenghtsLog10, spectrumsLog10, sizesModified)
+  fixedReglin <- cppFixReglin(cReglinResults, reglin)
+  filteredContinuum <- cppCalculateContinuumMatrix(filteredWavelenghts, fixedReglin$cReglinFixed)
+  chisqFiltered <- cppChisq(filteredSpectrums, filteredContinuum, filteredErrors, sizesModified)
+  chisqFilteredReduced <- cppReduceContinuumChisq(chisqFiltered, sizesModified)
+  
+  continuumMatrixDcMatrix <- cppCalculateCfunDcfun(
+    wavelengthsMatrix, 
+    fixedReglin$cReglinFixed, 
+    fixedReglin$reglinFixed
+  )
+  f1 <- continuumMatrixDcMatrix$cfun[1,]
+  w1 <- wavelengthsMatrix[1,]
   print('here')
 }
 
@@ -78,7 +102,7 @@ testFitting <- function() {
   
   
   print('finish')
-
+  
 }
 
 testFittingQ <- function() {
@@ -91,12 +115,12 @@ testFittingQ <- function() {
   params <- getLambdaParams(quasars)
   wm <- cppGenerateWavelenghtMatrix(params)
   wm <- t(wm)
-
+  
   list(
-      flux = getFluxMatrix(quasars),
-      error = getErrorMatrix(quasars),
-      lambda = wm,
-      sizes = getSizesVector(quasars)
+    flux = getFluxMatrix(quasars),
+    error = getErrorMatrix(quasars),
+    lambda = wm,
+    sizes = getSizesVector(quasars)
   )
 }
 

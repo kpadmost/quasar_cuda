@@ -77,9 +77,9 @@ List cppFilterWithWavelengthWindows(
   const size_t width = wavelengthsMatrix.rows();
   const size_t height = wavelengthsMatrix.cols();
   // work on copys
-  NumericMatrix wavelengthsMatrixC(wavelengthsMatrix);
-  NumericMatrix spectrumsMatrixC(spectrumsMatrix);
-  NumericMatrix errorsMatrixC(errorsMatrix);
+  NumericMatrix wavelengthsMatrixC = clone(wavelengthsMatrix);
+  NumericMatrix spectrumsMatrixC = clone(spectrumsMatrix);
+  NumericMatrix errorsMatrixC = clone(errorsMatrix);
   
   std::vector<double2> continuumWindowsVector = as<std::vector<double2>>(continuumWindowsVectorR);
   for(auto i = continuumWindowsVector.begin(); i != continuumWindowsVector.end(); ++i)
