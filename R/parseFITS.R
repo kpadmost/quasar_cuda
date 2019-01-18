@@ -40,5 +40,5 @@ readQuasarInfo <- function(filepath) {
   # restoring lambda from params
   #lambda <- restoreLambda(length(imageInfo$flux), as.double(headerInfo$a), as.double(headerInfo$b))
   #imageInfo$lambda <- lambda
-  list(specs=headerInfo, flux=imageInfo$flux, error=imageInfo$error, bitmask=imageInfo$bitmask)
+  list(specs=headerInfo, flux=imageInfo$flux, error=imageInfo$noise, bitmask=imageInfo$bitmask)
 }

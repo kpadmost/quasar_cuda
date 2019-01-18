@@ -46,13 +46,55 @@ continuumFitting <- function(wavelengthsMatrix, spectrumsMatrix, errorsMatrix, s
     fixedReglin$cReglinFixed, 
     fixedReglin$reglinFixed
   )
-  f1 <- continuumMatrixDcMatrix$cfun[1,]
-  w1 <- wavelengthsMatrix[1,]
-  print('here')
+  
+  result <- list(
+    cfun=continuumMatrixDcMatrix$cfun,
+    dcfun=continuumMatrixDcMatrix$dcfun,
+    fitParams=list(
+      cReglin=fixedReglin$cReglinFixed,
+      chisq=chisqFilteredReduced
+    )
+  )
+  if(lambdaAmp > 0) {
+    result$fitParams$reglin <- fixedReglin$reglinFixed
+  }
+  result
 }
 
-feFitting <- function() {
+feFitting <- function(spectrum, continuum, feTemplate, feWindows, feFitParams) {
+  #expand template
+  spectrumsMatrix <- spectrum$spectrums
+  wavelengthsMatrix <- spectrum$wavelengths
+  sizes <- spectrum$sizes
+  expandedTemplate <- cppExpandTemplate(
+    wavelengthsMatrix,
+    sizes,
+    feTemplate$lambda,
+    feTemplate$flux,
+    feFitParams
+  )
+  if(feFitParams$fitType == 'fwin' || feFitParams$fitType == 'win') {
+    filteredMatrices <- cppFilterWithWavelengthWindows(
+      wavelengthsMatrix = wavelengthsMatrix,
+      spectrumsMatrix = spectrumsMatrix,
+      errorsMatrix = errorsMatrix,
+      sizesVectorR = sizes,
+      continuumWindowsVectorR = feWindows
+    )
+    
+    spectrumsMatrix <- filteredMatrices$spectrumsMatrix
+    wavelengthsMatrix <- filteredMatrices$wavelengthsMatrix
+    errorsMatrix <- filteredMatrices$errorsMatrix
+    
+  }
+  # filter template with windows
   
+  # scale template 
+  
+  # calculate params
+  
+  print('here')
+  #scale template
 }
 
 elementFitting <- function() {
@@ -72,6 +114,11 @@ testFitting <- function() {
     windows = loadDefaultContinuumWindows(),
     lambdaAmplitude = 900.0
   )
+  
+  feFitParams <- loadDefaultFeFitParams()
+  feTemplate <- loadDefaultFeTemplate()
+  feWindows <- loadDefaultFeWindows()
+  
   fluxMatrix <- getFluxMatrix(quasars)
   errorMatrix <- getErrorMatrix(quasars)
   sizesVector <- getSizesVector(quasars)
@@ -86,17 +133,30 @@ testFitting <- function() {
   # filtering non-negative values
   filteredMatrices <- cppFilterWithValues(wavelengthsMatrix, fluxMatrix, errorMatrix, sizesVector)
   sizesVector <- cppCountNInfSize(filteredMatrices$spectrumsMatrix)
-  filteredSpectrums <- rFilterInfs(filteredMatrices$spectrumsMatrix)
-  filteredWavelengths <- rFilterInfs(filteredMatrices$wavelengthsMatrix)
-  filteredErrors <- rFilterInfs(filteredMatrices$errorsMatrix)
+  spectrums <- rFilterInfs(filteredMatrices$spectrumsMatrix)
+  wavelengths <- rFilterInfs(filteredMatrices$wavelengthsMatrix)
+  errors <- rFilterInfs(filteredMatrices$errorsMatrix)
+  
   
   for(i in seq(1:3)) {
     continuumResult <- continuumFitting(
-      filteredWavelengths,
-      filteredSpectrums,
-      filteredErrors,
+      wavelengths,
+      spectrums,
+      errors,
       sizesVector,
       continuumParams
+    )
+    
+    feFitResults <- feFitting(
+      list(
+        wavelengths=wavelengths,
+        spectrums=cppMatrixMinusMatrix(spectrums, continuumResult$cfun),
+        sizes=sizesVector
+        ),
+      continuum = continuumResult$cfun,
+      feTemplate,
+      feWindows,
+      feFitParams = feFitParams
     )
   }
   

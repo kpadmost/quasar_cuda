@@ -4,6 +4,7 @@
 #include <RcppCommon.h>
 #include "kernels/cuda_rcpp_common.h"
 #include <builtin_types.h>
+const double C = 299792458.0;
 
 namespace Rcpp {
 template <> double8 as (SEXP);

@@ -35,9 +35,9 @@ void generateWavelengthsMatrix
 __global__
 void single_interpolation
 	(
-		double *x_matrix,	// Długości dla widm
-		double *y_matrix,	// Widma po kolumnach
-		size_t  *sizes,			// Rozmiary widm
+		const double *x_matrix,	// Długości dla widm
+		const double *y_matrix,	// Widma po kolumnach
+		const size_t  *sizes,			// Rozmiary widm
 		const uint size,				// Ilość widm (ilość kolumn)
 		const double *s_matrix,	// Długości fal widma, które dodajemy
 		const double *t_matrix,	// Widmo, które dodajemy
@@ -173,38 +173,53 @@ void generateWavelengths(
 
 extern "C"
 void singleInterpolation(
-    double *h_matrix_x,
-    double *h_matrix_y,
-    size_t *h_sizes_x,
+    const double *h_matrix_x,
+    const double *h_matrix_y,
+    const size_t *h_sizes_x,
     const size_t size, // number of quasars(coln)
-    double *h_matrix_s,
-    double *h_matrix_t,
+    const double *h_matrix_s,
+    const double *h_matrix_t,
     const size_t size_s,
     double *h_output
 ) {
   double *d_matrix_x, *d_matrix_y, *d_matrix_s, *d_matrix_t, *d_output;
-  size_t *d_sizes_y;
+  size_t *d_sizes_x;
   const size_t x_matrix_size = size * ASTRO_OBJ_SIZE * sizeof(double);
-  
+  const size_t s_matrix_size = size * size_s * sizeof(double);
+  const size_t sizes_vector_size = size * sizeof(size_t);
   checkCudaErrors(cudaMalloc((void**)&d_output, x_matrix_size));
   checkCudaErrors(cudaMalloc((void**)&d_matrix_x, x_matrix_size));
   checkCudaErrors(cudaMalloc((void**)&d_matrix_y, x_matrix_size));
+  checkCudaErrors(cudaMalloc((void**)&d_matrix_s, s_matrix_size));
+  checkCudaErrors(cudaMalloc((void**)&d_matrix_t, s_matrix_size));
   
-  checkCudaErrors(cudaMalloc((void**)&d_sizes_y, size * sizeof(double)));
+  checkCudaErrors(cudaMalloc((void**)&d_sizes_x, sizes_vector_size));
   
-  checkCudaErrors(cudaMalloc((void**)&d_matrix_s, x_matrix_size));
-  checkCudaErrors(cudaMalloc((void**)&d_matrix_t, x_matrix_size));
+  
   
   checkCudaErrors(cudaMemcpy(d_matrix_x, h_matrix_x, x_matrix_size, cudaMemcpyHostToDevice));
   checkCudaErrors(cudaMemcpy(d_matrix_y, h_matrix_y, x_matrix_size, cudaMemcpyHostToDevice));
-  checkCudaErrors(cudaMemcpy(d_matrix_s, h_matrix_s, x_matrix_size, cudaMemcpyHostToDevice));
-  checkCudaErrors(cudaMemcpy(d_matrix_t, h_matrix_t, x_matrix_size, cudaMemcpyHostToDevice));
+  checkCudaErrors(cudaMemcpy(d_matrix_s, h_matrix_s, s_matrix_size, cudaMemcpyHostToDevice));
+  checkCudaErrors(cudaMemcpy(d_matrix_t, h_matrix_t, s_matrix_size, cudaMemcpyHostToDevice));
+  checkCudaErrors(cudaMemcpy(d_sizes_x, h_sizes_x, sizes_vector_size, cudaMemcpyHostToDevice));
   
-  const uint threadsPerBlock = 16;
+  const uint threadsPerBlock = BLOCK_DIM;
   const uint blocksPerGrid = calculateBlockNumber(size, threadsPerBlock);
-  
-  single_interpolation<<<blocksPerGrid, threadsPerBlock>>>(d_matrix_x,d_matrix_y,
-    d_sizes_y,
+  /*void single_interpolation
+	(
+		double *x_matrix,	// Długości dla widm
+		double *y_matrix,	// Widma po kolumnach
+		size_t  *sizes,			// Rozmiary widm
+		const uint size,				// Ilość widm (ilość kolumn)
+		const double *s_matrix,	// Długości fal widma, które dodajemy
+		const double *t_matrix,	// Widmo, które dodajemy
+		const uint to_add_spectrum_size, 	
+		double *output_matrix		// Macierz zapisu wyniku sumy
+	)*/
+  single_interpolation<<<blocksPerGrid, threadsPerBlock>>>(
+    d_matrix_x,
+    d_matrix_y,
+    d_sizes_x,
     size,
     d_matrix_s,
     d_matrix_t,
@@ -218,7 +233,7 @@ void singleInterpolation(
   cudaFree(d_matrix_s);
   cudaFree(d_matrix_t);
   cudaFree(d_output);
-  cudaFree(d_sizes_y);
+  cudaFree(d_sizes_x);
 }
 
 

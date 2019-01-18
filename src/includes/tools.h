@@ -14,6 +14,16 @@ void calculateReglin(
 );
 
 extern "C"
+void calculateReglinSimplified(
+    const double *h_x,
+    const double *h_y,
+    const size_t width,
+    const size_t height,
+    const size_t *h_cols_sizes,
+    double *h_results
+);
+
+extern "C"
 void calculateChisq(
     const double *h_x,
     const double *h_y,

@@ -12,12 +12,12 @@ void generateWavelengths(
 
 extern "C"
 void singleInterpolation(
-    double *h_matrix_x,
-    double *h_matrix_y,
-    size_t *h_sizes_x,
+    const double *h_matrix_x,
+    const double *h_matrix_y,
+    const size_t *h_sizes_x,
     const size_t size, // number of quasars(coln)
-    double *h_matrix_s,
-    double *h_matrix_t,
+    const double *h_matrix_s,
+    const double *h_matrix_t,
     const size_t size_s,
     double *h_output
 );

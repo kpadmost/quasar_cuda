@@ -63,10 +63,10 @@ NumericMatrix cppCalculateContinuumMatrix(const NumericMatrix& wavelengthsMatrix
   NumericMatrix output(width, height);
   calculateContinuumFunction(
     &wavelengthsMatrix[0], 
-                      &output[0],
-                      &continuumReglinVector[0],
-                      width,
-                      height
+    &output[0],
+    &continuumReglinVector[0],
+    width,
+    height
   );
   return output;
 }

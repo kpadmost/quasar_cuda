@@ -256,7 +256,7 @@ void calculateContinuumFunction(
   checkCudaErrors(cudaMemcpy(d_reglin_vector, h_reglin_vector, vector_size, cudaMemcpyHostToDevice));
   // instatiating kernel
   const dim3 threadsPerBlock(1, BLOCK_DIM, 1);
-  const dim3 blocksPerGrid(width / threadsPerBlock.x, calculateBlockNumber(height, threadsPerBlock.y) / threadsPerBlock.y, 1);
+  const dim3 blocksPerGrid(width / threadsPerBlock.x, calculateBlockNumber(height, threadsPerBlock.y),1);
   // calling kernel
   calculate_cfun<<<blocksPerGrid, threadsPerBlock>>>(
     d_wavelengths,

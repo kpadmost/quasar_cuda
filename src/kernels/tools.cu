@@ -15,6 +15,18 @@ double4 cDouble4(
   return result;
 }
 
+__device__
+double2 cDouble2(
+  const double x,
+  const double y
+) {
+  double2 result;
+  result.x = x;
+  result.y = y;
+  return result;
+}
+
+
 
 template<typename T> 
 struct cuda_plus {
@@ -94,8 +106,7 @@ void reglin(
 		y_sum	= t.z;
 		xy_sum	= t.w;
 		
-		
-
+	
 		idx += width;
 	}
 
@@ -179,16 +190,105 @@ void chisq(
 	results[gid] = chi2;
 }
 
-/*__global__
-void chisq(
-  const double *xs,	/
-	const double *ys,	// Macierz y'ów
-	const double *errs,	// Macierz błędów 
+
+__global__
+void reglin_simplified(
+  const double * xs,	// Macierz x'ów
+  const double * ys,	// Macierz y'ów
   const size_t width,
+  const size_t height,
   const size_t *cols_sizes, 	// Tablica ilośći znaczących elememntów 
 					   	// z kolejnych kolumn macierzy input
-  double *results	// Tablica z wynikami chisq/
+  double *results	// Tablica ze wszystkim współczynnikami dla każdego wiersza.
+	) 
+{
+	const uint gid = blockIdx.x * blockDim.x + threadIdx.x;		
+	if(gid >= width)
+	{
+		return;
+	}
+
+	uint idx = gid;
+	uint col_height = cols_sizes[gid];
+	uint idx_max = idx + col_height * width;
+
+	double x2_sum = 0;
+	double xy_sum = 0;	
+	{
+		while (idx < idx_max) 
+		{
+			double2 t, u;
+			const double x = xs[idx];
+			const double y = ys[idx];
+
+			u = cDouble2(x * x,  x*y);			
+			t = cDouble2(x2_sum + u.x, xy_sum + u.y);
+			
+			x2_sum 	= t.x;
+			xy_sum 	= t.y;
+
+			idx += width;
+		}
+	}
+	double r = (xy_sum / x2_sum);
+	if(isnan(r))
+	{
+		r = 0.0;
+	}	
+	results[gid] = (double)(r);
+}
+
+/*
+__global__
+void reglin_simplified(
+  const double * xs,	// Macierz x'ów
+  const double * ys,	// Macierz y'ów
+  const size_t width,
+  const size_t height,
+  const size_t *cols_sizes, 	// Tablica ilośći znaczących elememntów 
+					   	// z kolejnych kolumn macierzy input
+  double *results	// Tablica ze wszystkim współczynnikami dla każdego wiersza.
 	) */
+
+extern "C"
+void calculateReglinSimplified(
+  const double *h_x,
+  const double *h_y,
+  const size_t width,
+  const size_t height,
+  const size_t *h_cols_sizes,
+  double *h_results
+) {
+  // allocating kernel data
+  double *d_x, *d_y, *d_results;
+  size_t *d_cols_sizes;
+  const size_t matrix_size = width * height * sizeof(double);
+  const size_t vector_size_t_size = width *  sizeof(size_t);
+  const size_t vector_double_size = width *  sizeof(double);
+  checkCudaErrors(cudaMalloc((void**)&d_x, matrix_size));
+  checkCudaErrors(cudaMalloc((void**)&d_y, matrix_size));
+  checkCudaErrors(cudaMalloc((void**)&d_cols_sizes, vector_size_t_size));
+  checkCudaErrors(cudaMalloc((void**)&d_results, vector_double_size));
+  // copying data
+  checkCudaErrors(cudaMemcpy(d_x, h_x, matrix_size, cudaMemcpyHostToDevice));
+  checkCudaErrors(cudaMemcpy(d_y, h_y, matrix_size, cudaMemcpyHostToDevice));
+  checkCudaErrors(cudaMemcpy(d_cols_sizes, h_cols_sizes, vector_size_t_size, cudaMemcpyHostToDevice));
+  // instatiating kernel
+  const size_t threadsPerBlock = BLOCK_DIM;
+  const size_t blocksPerGrid = calculateBlockNumber(width, threadsPerBlock);
+  // calling kernel
+  reglin_simplified<<<blocksPerGrid, threadsPerBlock>>>(d_x, d_y, width, height, d_cols_sizes, d_results);
+  cudaDeviceSynchronize();
+  checkCudaErrors(cudaGetLastError());
+  //copying memory back
+  checkCudaErrors(cudaMemcpy(h_results, d_results, vector_double_size, cudaMemcpyDeviceToHost));
+  // free memory
+  cudaFree(d_x);
+  cudaFree(d_y);
+  cudaFree(d_cols_sizes);
+  cudaFree(d_results);
+}
+
 
 extern "C"
 void calculateChisq(

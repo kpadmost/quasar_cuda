@@ -54,6 +54,21 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// cppExpandTemplate
+NumericMatrix cppExpandTemplate(const NumericMatrix& wavelengths, const IntegerVector& sizes, const NumericVector& feWavelengths, const NumericVector& feSpectrum, const List& feFitParams);
+RcppExport SEXP _QuasarFitCuda_cppExpandTemplate(SEXP wavelengthsSEXP, SEXP sizesSEXP, SEXP feWavelengthsSEXP, SEXP feSpectrumSEXP, SEXP feFitParamsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type wavelengths(wavelengthsSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type sizes(sizesSEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type feWavelengths(feWavelengthsSEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type feSpectrum(feSpectrumSEXP);
+    Rcpp::traits::input_parameter< const List& >::type feFitParams(feFitParamsSEXP);
+    rcpp_result_gen = Rcpp::wrap(cppExpandTemplate(wavelengths, sizes, feWavelengths, feSpectrum, feFitParams));
+    return rcpp_result_gen;
+END_RCPP
+}
 // cppCountNInfSize
 IntegerVector cppCountNInfSize(const NumericMatrix& inputMatrix);
 RcppExport SEXP _QuasarFitCuda_cppCountNInfSize(SEXP inputMatrixSEXP) {
@@ -233,6 +248,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_QuasarFitCuda_cppFixReglin", (DL_FUNC) &_QuasarFitCuda_cppFixReglin, 2},
     {"_QuasarFitCuda_cppCalculateContinuumMatrix", (DL_FUNC) &_QuasarFitCuda_cppCalculateContinuumMatrix, 2},
     {"_QuasarFitCuda_cppReduceContinuumChisq", (DL_FUNC) &_QuasarFitCuda_cppReduceContinuumChisq, 2},
+    {"_QuasarFitCuda_cppExpandTemplate", (DL_FUNC) &_QuasarFitCuda_cppExpandTemplate, 5},
     {"_QuasarFitCuda_cppCountNInfSize", (DL_FUNC) &_QuasarFitCuda_cppCountNInfSize, 1},
     {"_QuasarFitCuda_cppCopyNInf", (DL_FUNC) &_QuasarFitCuda_cppCopyNInf, 2},
     {"_QuasarFitCuda_cppFilterWithValues", (DL_FUNC) &_QuasarFitCuda_cppFilterWithValues, 4},

@@ -17,6 +17,10 @@ cppReduceContinuumChisq <- function(chisq, sizes) {
     .Call('_QuasarFitCuda_cppReduceContinuumChisq', PACKAGE = 'QuasarFitCuda', chisq, sizes)
 }
 
+cppExpandTemplate <- function(wavelengths, sizes, feWavelengths, feSpectrum, feFitParams) {
+    .Call('_QuasarFitCuda_cppExpandTemplate', PACKAGE = 'QuasarFitCuda', wavelengths, sizes, feWavelengths, feSpectrum, feFitParams)
+}
+
 cppCountNInfSize <- function(inputMatrix) {
     .Call('_QuasarFitCuda_cppCountNInfSize', PACKAGE = 'QuasarFitCuda', inputMatrix)
 }
