@@ -22,6 +22,7 @@ SEXP cppReglin(const NumericMatrix& x, const NumericMatrix& y, const IntegerVect
   return Rcpp::wrap(reglinResults);
 }
 
+// [[Rcpp::export]]
 NumericVector cppReglinSimplified(
     const NumericMatrix& x,
     const NumericMatrix& y,
@@ -51,7 +52,7 @@ NumericVector cppChisq(
     const NumericMatrix& x,
     const NumericMatrix& y, 
     const NumericMatrix& e,
-    const NumericVector& sizes
+    const IntegerVector& sizes
 ) {
   const size_t width = x.rows();
   const size_t height = x.cols();

@@ -4,6 +4,9 @@ using namespace Rcpp;
 #include "RcppExtended.hpp"
 
 #include "includes/quasar_spectrum.h"
+#include "includes/quasar_fefit.h"
+#include "includes/rcppTools.h"
+#include "includes/tools.h"
 #include <cmath>
 /*loadDefaultFeFitParams <- function() {
  list(
@@ -108,15 +111,40 @@ NumericMatrix cppExpandTemplate(
   return results;
 }
 
-/*extern "C"
- void singleInterpolation(
- double *h_matrix_x,
- double *h_matrix_y,
- size_t *h_sizes_x,
- const size_t size, // number of quasars(coln)
- double *h_matrix_s,
- double *h_matrix_t,
- const size_t size_s,
- double *h_output
- );*/
+// [[Rcpp::export]]
+NumericVector cppCalculateFeScaleRates(
+  const NumericMatrix& spectrumsMatrix,
+  const NumericMatrix& templateMatrix,
+  const IntegerVector& sizes,
+  SEXP feFitParams
+) {
+  const size_t width = spectrumsMatrix.rows();
+  const size_t height = spectrumsMatrix.cols();
+  std::vector<size_t> sizesVector = as<std::vector<size_t> >(sizes);
+  NumericVector result(width);
+  calculateReglinSimplified(
+    &templateMatrix[0],
+    &spectrumsMatrix[0],
+    width,
+    height,
+    &sizesVector[0],
+    &result[0]
+  );
+  return result;
+}
+
+// [[Rcpp::export]]
+NumericVector cppCalculateFeReducesChisq(
+  const NumericMatrix& spectrumsMatrix,
+  const NumericMatrix& templateMatrix,
+  const NumericMatrix& errorsMatrix,
+  const IntegerVector& sizes
+) {
+  const size_t width = spectrumsMatrix.rows();
+  const size_t height = spectrumsMatrix.cols();
+  std::vector<size_t> sizesVector = as<std::vector<size_t> >(sizes);
+  NumericVector chisqVector = cppChisq(spectrumsMatrix, templateMatrix, errorsMatrix, sizes);
+  reduceFeChisq(&chisqVector[0], &sizesVector[0], width);
+  return chisqVector;
+}
 

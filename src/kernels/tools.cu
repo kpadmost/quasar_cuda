@@ -238,17 +238,6 @@ void reglin_simplified(
 	results[gid] = (double)(r);
 }
 
-/*
-__global__
-void reglin_simplified(
-  const double * xs,	// Macierz x'ów
-  const double * ys,	// Macierz y'ów
-  const size_t width,
-  const size_t height,
-  const size_t *cols_sizes, 	// Tablica ilośći znaczących elememntów 
-					   	// z kolejnych kolumn macierzy input
-  double *results	// Tablica ze wszystkim współczynnikami dla każdego wiersza.
-	) */
 
 extern "C"
 void calculateReglinSimplified(

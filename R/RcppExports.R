@@ -21,6 +21,14 @@ cppExpandTemplate <- function(wavelengths, sizes, feWavelengths, feSpectrum, feF
     .Call('_QuasarFitCuda_cppExpandTemplate', PACKAGE = 'QuasarFitCuda', wavelengths, sizes, feWavelengths, feSpectrum, feFitParams)
 }
 
+cppCalculateFeScaleRates <- function(spectrumsMatrix, templateMatrix, sizes, feFitParams) {
+    .Call('_QuasarFitCuda_cppCalculateFeScaleRates', PACKAGE = 'QuasarFitCuda', spectrumsMatrix, templateMatrix, sizes, feFitParams)
+}
+
+cppCalculateFeReducesChisq <- function(spectrumsMatrix, templateMatrix, errorsMatrix, sizes) {
+    .Call('_QuasarFitCuda_cppCalculateFeReducesChisq', PACKAGE = 'QuasarFitCuda', spectrumsMatrix, templateMatrix, errorsMatrix, sizes)
+}
+
 cppCountNInfSize <- function(inputMatrix) {
     .Call('_QuasarFitCuda_cppCountNInfSize', PACKAGE = 'QuasarFitCuda', inputMatrix)
 }
@@ -75,6 +83,10 @@ cppGenerateWavelenghtMatrix <- function(params) {
 
 cppReglin <- function(x, y, sizes) {
     .Call('_QuasarFitCuda_cppReglin', PACKAGE = 'QuasarFitCuda', x, y, sizes)
+}
+
+cppReglinSimplified <- function(x, y, sizes) {
+    .Call('_QuasarFitCuda_cppReglinSimplified', PACKAGE = 'QuasarFitCuda', x, y, sizes)
 }
 
 cppChisq <- function(x, y, e, sizes) {

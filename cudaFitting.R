@@ -74,6 +74,7 @@ feFitting <- function(spectrum, continuum, feTemplate, feWindows, feFitParams) {
     feTemplate$flux,
     feFitParams
   )
+  expandedTemplateC <- expandedTemplate
   if(feFitParams$fitType == 'fwin' || feFitParams$fitType == 'win') {
     filteredMatrices <- cppFilterWithWavelengthWindows(
       wavelengthsMatrix = wavelengthsMatrix,
@@ -94,6 +95,7 @@ feFitting <- function(spectrum, continuum, feTemplate, feWindows, feFitParams) {
     continuum <- filteredMatrices$aMatrixFiltered
     expandedTemplate <- filteredMatrices$bMatrixFiltered
   }
+  
   if(feFitParams$fitType == 'fwin') {
     filteredMatrices <- cppFilterWithValues(
       wavelengthMatrix = expandedTemplate,
@@ -101,8 +103,8 @@ feFitting <- function(spectrum, continuum, feTemplate, feWindows, feFitParams) {
       errorMatrix = errorsMatrix,
       sizes = sizes
     )
-    expandedTemplate <- filteredMatrices$wavelengthMatrix
-    wavelengthsMatrix <- filteredMatrices$spectrumMatrix
+    expandedTemplate <- filteredMatrices$wavelengthsMatrix
+    wavelengthsMatrix <- filteredMatrices$spectrumsMatrix
     errorsMatrix <- filteredMatrices$errorsMatrix
     
     filteredMatrices <- cppFilterWithParagon(
@@ -115,15 +117,42 @@ feFitting <- function(spectrum, continuum, feTemplate, feWindows, feFitParams) {
     spectrumsMatrix <- filteredMatrices$bMatrixFiltered
     
   }
-    
-    
-    
   
-  # filter template with windows
+  spectrumsMatrixFiltered <- spectrumsMatrix;
+  wavelengthsMatrixFiltered <- wavelengthsMatrix;
+  errorsMatrixFiltered <- errorsMatrix;
+  continuumsMatrixFiltered <- continuum;
+  expandedFeMatrixFiltered <- expandedTemplate;
+  sizesFe <- sizes
+  maxSize <- ASTRO_OBJ_SIZE
+  if(feFitParams$fitType == 'fwin') {
+    sizesFe <- cppCountNInfSize(spectrumsMatrixFiltered)
+    maxSize <- max(sizesFe)
+    
+    spectrumsMatrixFiltered <- cppCopyNInf(spectrumsMatrix, maxSize)
+    wavelengthsMatrixFiltered <- cppCopyNInf(wavelengthsMatrix, maxSize)
+    errorsMatrixFiltered <- cppCopyNInf(errorsMatrix, maxSize)
+    continuumsMatrixFiltered <- cppCopyNInf(continuum, maxSize)
+    expandedFeMatrixFiltered <- cppCopyNInf(expandedTemplate, maxSize)
+  }
   
   # scale template 
+  feScaleRates <- cppCalculateFeScaleRates(
+    spectrumsMatrix = spectrumsMatrixFiltered,
+    templateMatrix = expandedFeMatrixFiltered,
+    sizes = sizesFe,
+    feFitParams = feFitParams
+  )
   
-  # calculate params
+  templateFe<- cppMatrixMultiplyCol(expandedTemplateC, feScaleRates)
+  
+  # calculate fit params
+  reducedChisqFiltered <- cppCalculateFeReducesChisq(
+    spectrumsMatrix = spectrumsMatrixFiltered,
+    templateMatrix = expandedFeMatrixFiltered,
+    errorsMatrix = errorsMatrixFiltered,
+    sizes = sizesFe  
+  )
   
   print('here')
   #scale template

@@ -69,6 +69,34 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// cppCalculateFeScaleRates
+NumericVector cppCalculateFeScaleRates(const NumericMatrix& spectrumsMatrix, const NumericMatrix& templateMatrix, const IntegerVector& sizes, SEXP feFitParams);
+RcppExport SEXP _QuasarFitCuda_cppCalculateFeScaleRates(SEXP spectrumsMatrixSEXP, SEXP templateMatrixSEXP, SEXP sizesSEXP, SEXP feFitParamsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type spectrumsMatrix(spectrumsMatrixSEXP);
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type templateMatrix(templateMatrixSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type sizes(sizesSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type feFitParams(feFitParamsSEXP);
+    rcpp_result_gen = Rcpp::wrap(cppCalculateFeScaleRates(spectrumsMatrix, templateMatrix, sizes, feFitParams));
+    return rcpp_result_gen;
+END_RCPP
+}
+// cppCalculateFeReducesChisq
+NumericVector cppCalculateFeReducesChisq(const NumericMatrix& spectrumsMatrix, const NumericMatrix& templateMatrix, const NumericMatrix& errorsMatrix, const IntegerVector& sizes);
+RcppExport SEXP _QuasarFitCuda_cppCalculateFeReducesChisq(SEXP spectrumsMatrixSEXP, SEXP templateMatrixSEXP, SEXP errorsMatrixSEXP, SEXP sizesSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type spectrumsMatrix(spectrumsMatrixSEXP);
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type templateMatrix(templateMatrixSEXP);
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type errorsMatrix(errorsMatrixSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type sizes(sizesSEXP);
+    rcpp_result_gen = Rcpp::wrap(cppCalculateFeReducesChisq(spectrumsMatrix, templateMatrix, errorsMatrix, sizes));
+    return rcpp_result_gen;
+END_RCPP
+}
 // cppCountNInfSize
 IntegerVector cppCountNInfSize(const NumericMatrix& inputMatrix);
 RcppExport SEXP _QuasarFitCuda_cppCountNInfSize(SEXP inputMatrixSEXP) {
@@ -242,8 +270,21 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// cppReglinSimplified
+NumericVector cppReglinSimplified(const NumericMatrix& x, const NumericMatrix& y, const IntegerVector& sizes);
+RcppExport SEXP _QuasarFitCuda_cppReglinSimplified(SEXP xSEXP, SEXP ySEXP, SEXP sizesSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type y(ySEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type sizes(sizesSEXP);
+    rcpp_result_gen = Rcpp::wrap(cppReglinSimplified(x, y, sizes));
+    return rcpp_result_gen;
+END_RCPP
+}
 // cppChisq
-NumericVector cppChisq(const NumericMatrix& x, const NumericMatrix& y, const NumericMatrix& e, const NumericVector& sizes);
+NumericVector cppChisq(const NumericMatrix& x, const NumericMatrix& y, const NumericMatrix& e, const IntegerVector& sizes);
 RcppExport SEXP _QuasarFitCuda_cppChisq(SEXP xSEXP, SEXP ySEXP, SEXP eSEXP, SEXP sizesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -251,7 +292,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const NumericMatrix& >::type x(xSEXP);
     Rcpp::traits::input_parameter< const NumericMatrix& >::type y(ySEXP);
     Rcpp::traits::input_parameter< const NumericMatrix& >::type e(eSEXP);
-    Rcpp::traits::input_parameter< const NumericVector& >::type sizes(sizesSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type sizes(sizesSEXP);
     rcpp_result_gen = Rcpp::wrap(cppChisq(x, y, e, sizes));
     return rcpp_result_gen;
 END_RCPP
@@ -263,6 +304,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_QuasarFitCuda_cppCalculateContinuumMatrix", (DL_FUNC) &_QuasarFitCuda_cppCalculateContinuumMatrix, 2},
     {"_QuasarFitCuda_cppReduceContinuumChisq", (DL_FUNC) &_QuasarFitCuda_cppReduceContinuumChisq, 2},
     {"_QuasarFitCuda_cppExpandTemplate", (DL_FUNC) &_QuasarFitCuda_cppExpandTemplate, 5},
+    {"_QuasarFitCuda_cppCalculateFeScaleRates", (DL_FUNC) &_QuasarFitCuda_cppCalculateFeScaleRates, 4},
+    {"_QuasarFitCuda_cppCalculateFeReducesChisq", (DL_FUNC) &_QuasarFitCuda_cppCalculateFeReducesChisq, 4},
     {"_QuasarFitCuda_cppCountNInfSize", (DL_FUNC) &_QuasarFitCuda_cppCountNInfSize, 1},
     {"_QuasarFitCuda_cppCopyNInf", (DL_FUNC) &_QuasarFitCuda_cppCopyNInf, 2},
     {"_QuasarFitCuda_cppFilterWithValues", (DL_FUNC) &_QuasarFitCuda_cppFilterWithValues, 4},
@@ -277,6 +320,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_QuasarFitCuda_cppMovingAverage", (DL_FUNC) &_QuasarFitCuda_cppMovingAverage, 3},
     {"_QuasarFitCuda_cppGenerateWavelenghtMatrix", (DL_FUNC) &_QuasarFitCuda_cppGenerateWavelenghtMatrix, 1},
     {"_QuasarFitCuda_cppReglin", (DL_FUNC) &_QuasarFitCuda_cppReglin, 3},
+    {"_QuasarFitCuda_cppReglinSimplified", (DL_FUNC) &_QuasarFitCuda_cppReglinSimplified, 3},
     {"_QuasarFitCuda_cppChisq", (DL_FUNC) &_QuasarFitCuda_cppChisq, 4},
     {NULL, NULL, 0}
 };
