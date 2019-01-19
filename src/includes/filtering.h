@@ -39,4 +39,14 @@ void filterWithWavelengthsWindows(
     const size_t height
 );
 
+extern "C"
+void filterWithParagon(
+    const double *h_paragon,
+    double *h_a,
+    double *h_b,
+    size_t *h_sizes,
+    const size_t width,
+    const size_t height
+);
+
 #endif

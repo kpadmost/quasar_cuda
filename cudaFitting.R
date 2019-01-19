@@ -65,6 +65,7 @@ feFitting <- function(spectrum, continuum, feTemplate, feWindows, feFitParams) {
   #expand template
   spectrumsMatrix <- spectrum$spectrums
   wavelengthsMatrix <- spectrum$wavelengths
+  errorsMatrix <- spectrum$errors
   sizes <- spectrum$sizes
   expandedTemplate <- cppExpandTemplate(
     wavelengthsMatrix,
@@ -81,12 +82,43 @@ feFitting <- function(spectrum, continuum, feTemplate, feWindows, feFitParams) {
       sizesVectorR = sizes,
       continuumWindowsVectorR = feWindows
     )
-    
-    spectrumsMatrix <- filteredMatrices$spectrumsMatrix
     wavelengthsMatrix <- filteredMatrices$wavelengthsMatrix
+    spectrumsMatrix <- filteredMatrices$spectrumsMatrix
+    errorsMatrix <- filteredMatrices$errorsMatrix
+    filteredMatrices <- cppFilterWithParagon(
+      spectrumsMatrix,
+      continuum,
+      expandedTemplate,
+      sizes
+    )
+    continuum <- filteredMatrices$aMatrixFiltered
+    expandedTemplate <- filteredMatrices$bMatrixFiltered
+  }
+  if(feFitParams$fitType == 'fwin') {
+    filteredMatrices <- cppFilterWithValues(
+      wavelengthMatrix = expandedTemplate,
+      spectrumMatrix = wavelengthsMatrix,
+      errorMatrix = errorsMatrix,
+      sizes = sizes
+    )
+    expandedTemplate <- filteredMatrices$wavelengthMatrix
+    wavelengthsMatrix <- filteredMatrices$spectrumMatrix
     errorsMatrix <- filteredMatrices$errorsMatrix
     
+    filteredMatrices <- cppFilterWithParagon(
+      paragonMatrix = expandedTemplate,
+      aMatrix = continuum,
+      bMatrix = spectrumsMatrix,
+      sizes
+    )
+    continuum <- filteredMatrices$aMatrixFiltered
+    spectrumsMatrix <- filteredMatrices$bMatrixFiltered
+    
   }
+    
+    
+    
+  
   # filter template with windows
   
   # scale template 
@@ -151,6 +183,7 @@ testFitting <- function() {
       list(
         wavelengths=wavelengths,
         spectrums=cppMatrixMinusMatrix(spectrums, continuumResult$cfun),
+        errors=errors,
         sizes=sizesVector
         ),
       continuum = continuumResult$cfun,

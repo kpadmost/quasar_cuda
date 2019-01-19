@@ -39,7 +39,6 @@ List cppFilterWithValues(
     const NumericVector& sizes)
 {
   const size_t width = spectrumMatrix.ncol();
-  Rcout << " w " << width;
   const size_t height = spectrumMatrix.nrow();
   std::vector<size_t> real_sizes(sizes.size());
   std::copy(sizes.begin(), sizes.end(), real_sizes.begin());
@@ -65,6 +64,43 @@ List cppFilterWithValues(
     Named("errorsMatrix") = errorMatrix_c
   );
 }
+
+/*extern "C"
+ void filterWithParagon(
+ double *h_paragon,
+ double *h_a,
+ double *h_b,
+ size_t *h_sizes,
+ const size_t width,
+ const size_t height
+ );*/
+
+// [[Rcpp::export]]
+List cppFilterWithParagon(
+    const NumericMatrix& paragonMatrix,
+    const NumericMatrix& aMatrix, 
+    const NumericMatrix& bMatrix, 
+    const IntegerVector& sizes
+) {
+  const size_t width = paragonMatrix.rows();
+  const size_t height = paragonMatrix.cols();
+  std::vector<size_t> sizesVector = as<std::vector<size_t> > (sizes);
+  NumericMatrix aOutput = Rcpp::clone(aMatrix);
+  NumericMatrix bOutput = Rcpp::clone(bMatrix);
+  filterWithParagon(
+    &paragonMatrix[0],
+    &aOutput[0],
+    &bOutput[0],
+    &sizesVector[0],
+    width,
+    height
+  );
+  return Rcpp::List::create(
+    Named("aMatrixFiltered") = aOutput,
+    Named("bMatrixFiltered") = bOutput
+  );
+}
+
 
 // [[Rcpp::export]]
 List cppFilterWithWavelengthWindows(
@@ -100,14 +136,4 @@ List cppFilterWithWavelengthWindows(
     Named("spectrumsMatrix") = spectrumsMatrixC,
     Named("errorsMatrix") = errorsMatrixC
   );
-  /*void filterWithWavelengthsWindows(
-   double *h_wavelengths,
-   double *h_spectrums,
-   double *h_errors,
-   const size_t *h_sizes,
-   const double2 *h_windows,
-   const size_t windows_number,
-   const size_t width,
-   const size_t height
-  );*/
 }

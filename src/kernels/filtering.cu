@@ -29,6 +29,33 @@ void count_if_not_inf
 	result[gid] = count;
 }
 
+__global__
+void filter_with_paragon
+	(
+		const double *paragons_matrix,	// Widma
+		double *a_matrix,	// Dowolna macierz wielkości spectrums_matrix
+		double *b_matrix,	// Dowolna macierz wielkości spectrums_matrix
+		const size_t *sizes 	// Rozmiary widm w spectrums_matrix
+	)
+{
+	const uint gid0 = blockIdx.x * blockDim.x + threadIdx.x;
+	const uint gid1 = blockIdx.y * blockDim.y + threadIdx.y;
+	// Indeks elementu
+	const uint idx = (gid0 * ASTRO_OBJ_SIZE) + gid1;
+  
+  const uint global_size = gridDim.x * blockDim.x ;
+	const uint size = sizes[idx % global_size];
+	const uint row_idx = idx / global_size;
+
+	const double spectrum = paragons_matrix[idx];
+
+	// Obliczenie flagi, czy spec_result != +/- INFINITY.
+	if(row_idx >= size || !isfinite(spectrum)) {
+	  a_matrix[idx] = CUDART_INF;
+	  b_matrix[idx] = CUDART_INF;
+	}
+}
+
 __global__ void copy_if_not_inf
 	(
 		const double * input,	// Macierz wejściowa.
@@ -141,7 +168,66 @@ __global__ void filter_nonpositive
     b_matrix[idx] = CUDART_INF;
   }
 }
+/*__global__
+void filter_with_paragon
+	(
+		double *paragons_matrix,	// Widma
+		double *a_matrix,	// Dowolna macierz wielkości spectrums_matrix
+		double *b_matrix,	// Dowolna macierz wielkości spectrums_matrix
+		const size_t *sizes 	// Rozmiary widm w spectrums_matrix
+	)
+{*/
 
+
+extern "C"
+void filterWithParagon(
+  const double *h_paragon,
+  double *h_a,
+  double *h_b,
+  size_t *h_sizes,
+  const size_t width,
+  const size_t height
+)
+{
+  // allocating kernel data
+  double *d_a, *d_b, *d_paragon;
+  size_t *d_sizes;
+  const size_t matrix_size = width * height * sizeof(double);
+  const size_t vector_size = width * sizeof(size_t);
+  checkCudaErrors(cudaMalloc((void**)&d_paragon, matrix_size));
+  checkCudaErrors(cudaMalloc((void**)&d_a, matrix_size));
+  checkCudaErrors(cudaMalloc((void**)&d_b, matrix_size));
+  checkCudaErrors(cudaMalloc((void**)&d_sizes, vector_size));
+  // copying data
+  checkCudaErrors(cudaMemcpy(d_paragon, h_paragon, matrix_size, cudaMemcpyHostToDevice));
+  checkCudaErrors(cudaMemcpy(d_a, h_a, matrix_size, cudaMemcpyHostToDevice));
+  checkCudaErrors(cudaMemcpy(d_b, h_b, matrix_size, cudaMemcpyHostToDevice));
+  checkCudaErrors(cudaMemcpy(d_sizes, h_sizes, vector_size, cudaMemcpyHostToDevice));
+  // instatiating kernel
+  const dim3 threadsPerBlock(1, BLOCK_DIM, 1);
+  const dim3 blocksPerGrid(
+    width / threadsPerBlock.x,
+    calculateBlockNumber(height, threadsPerBlock.y),
+    1
+  );
+  // calling kernel
+  filter_with_paragon<<<blocksPerGrid, threadsPerBlock>>>(
+    d_paragon,
+    d_a,
+    d_b,
+    d_sizes
+  );
+  cudaDeviceSynchronize();
+  checkCudaErrors(cudaGetLastError());
+  //copying memory back
+  checkCudaErrors(cudaMemcpy(h_a, d_a, matrix_size, cudaMemcpyDeviceToHost));
+  checkCudaErrors(cudaMemcpy(h_b, d_b, matrix_size, cudaMemcpyDeviceToHost));
+  // free memory
+  cudaFree(d_paragon);
+  cudaFree(d_b);
+  cudaFree(d_a);
+  cudaFree(d_sizes);
+}
 
 extern "C"
 void countNotInf(

@@ -106,6 +106,20 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// cppFilterWithParagon
+List cppFilterWithParagon(const NumericMatrix& paragonMatrix, const NumericMatrix& aMatrix, const NumericMatrix& bMatrix, const IntegerVector& sizes);
+RcppExport SEXP _QuasarFitCuda_cppFilterWithParagon(SEXP paragonMatrixSEXP, SEXP aMatrixSEXP, SEXP bMatrixSEXP, SEXP sizesSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type paragonMatrix(paragonMatrixSEXP);
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type aMatrix(aMatrixSEXP);
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type bMatrix(bMatrixSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type sizes(sizesSEXP);
+    rcpp_result_gen = Rcpp::wrap(cppFilterWithParagon(paragonMatrix, aMatrix, bMatrix, sizes));
+    return rcpp_result_gen;
+END_RCPP
+}
 // cppFilterWithWavelengthWindows
 List cppFilterWithWavelengthWindows(const NumericMatrix& wavelengthsMatrix, const NumericMatrix& spectrumsMatrix, const NumericMatrix& errorsMatrix, const IntegerVector& sizesVectorR, SEXP continuumWindowsVectorR);
 RcppExport SEXP _QuasarFitCuda_cppFilterWithWavelengthWindows(SEXP wavelengthsMatrixSEXP, SEXP spectrumsMatrixSEXP, SEXP errorsMatrixSEXP, SEXP sizesVectorRSEXP, SEXP continuumWindowsVectorRSEXP) {
@@ -252,6 +266,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_QuasarFitCuda_cppCountNInfSize", (DL_FUNC) &_QuasarFitCuda_cppCountNInfSize, 1},
     {"_QuasarFitCuda_cppCopyNInf", (DL_FUNC) &_QuasarFitCuda_cppCopyNInf, 2},
     {"_QuasarFitCuda_cppFilterWithValues", (DL_FUNC) &_QuasarFitCuda_cppFilterWithValues, 4},
+    {"_QuasarFitCuda_cppFilterWithParagon", (DL_FUNC) &_QuasarFitCuda_cppFilterWithParagon, 4},
     {"_QuasarFitCuda_cppFilterWithWavelengthWindows", (DL_FUNC) &_QuasarFitCuda_cppFilterWithWavelengthWindows, 5},
     {"_QuasarFitCuda_cppMatrixLog10", (DL_FUNC) &_QuasarFitCuda_cppMatrixLog10, 1},
     {"_QuasarFitCuda_cppMatrixAddScalar", (DL_FUNC) &_QuasarFitCuda_cppMatrixAddScalar, 2},

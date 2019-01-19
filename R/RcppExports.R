@@ -33,6 +33,10 @@ cppFilterWithValues <- function(wavelengthMatrix, spectrumMatrix, errorMatrix, s
     .Call('_QuasarFitCuda_cppFilterWithValues', PACKAGE = 'QuasarFitCuda', wavelengthMatrix, spectrumMatrix, errorMatrix, sizes)
 }
 
+cppFilterWithParagon <- function(paragonMatrix, aMatrix, bMatrix, sizes) {
+    .Call('_QuasarFitCuda_cppFilterWithParagon', PACKAGE = 'QuasarFitCuda', paragonMatrix, aMatrix, bMatrix, sizes)
+}
+
 cppFilterWithWavelengthWindows <- function(wavelengthsMatrix, spectrumsMatrix, errorsMatrix, sizesVectorR, continuumWindowsVectorR) {
     .Call('_QuasarFitCuda_cppFilterWithWavelengthWindows', PACKAGE = 'QuasarFitCuda', wavelengthsMatrix, spectrumsMatrix, errorsMatrix, sizesVectorR, continuumWindowsVectorR)
 }
