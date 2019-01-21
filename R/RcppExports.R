@@ -49,6 +49,22 @@ cppFilterWithWavelengthWindows <- function(wavelengthsMatrix, spectrumsMatrix, e
     .Call('_QuasarFitCuda_cppFilterWithWavelengthWindows', PACKAGE = 'QuasarFitCuda', wavelengthsMatrix, spectrumsMatrix, errorsMatrix, sizesVectorR, continuumWindowsVectorR)
 }
 
+cppFitGaussian <- function(x, y, sizes, results) {
+    .Call('_QuasarFitCuda_cppFitGaussian', PACKAGE = 'QuasarFitCuda', x, y, sizes, results)
+}
+
+cppCalculateFWHM <- function(fitParams) {
+    .Call('_QuasarFitCuda_cppCalculateFWHM', PACKAGE = 'QuasarFitCuda', fitParams)
+}
+
+cppCalculateGaussianChisq <- function(wavelengthsMatrix, spectrumsMatrix, errorsMatrix, fitGaussianParams, sizes) {
+    .Call('_QuasarFitCuda_cppCalculateGaussianChisq', PACKAGE = 'QuasarFitCuda', wavelengthsMatrix, spectrumsMatrix, errorsMatrix, fitGaussianParams, sizes)
+}
+
+cppCalculateGaussian <- function(xMatrix, fitGaussianParams, sizes) {
+    .Call('_QuasarFitCuda_cppCalculateGaussian', PACKAGE = 'QuasarFitCuda', xMatrix, fitGaussianParams, sizes)
+}
+
 cppMatrixLog10 <- function(inputMatrix) {
     .Call('_QuasarFitCuda_cppMatrixLog10', PACKAGE = 'QuasarFitCuda', inputMatrix)
 }
@@ -91,5 +107,9 @@ cppReglinSimplified <- function(x, y, sizes) {
 
 cppChisq <- function(x, y, e, sizes) {
     .Call('_QuasarFitCuda_cppChisq', PACKAGE = 'QuasarFitCuda', x, y, e, sizes)
+}
+
+cppCalculateTrapz <- function(x, y, sizes) {
+    .Call('_QuasarFitCuda_cppCalculateTrapz', PACKAGE = 'QuasarFitCuda', x, y, sizes)
 }
 

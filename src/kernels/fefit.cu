@@ -1,4 +1,4 @@
-#include "cuda_tools.cc"
+#include "cuda_tools.h"
 
 __global__
 void reduce_fe_chisqs

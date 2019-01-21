@@ -1,11 +1,11 @@
-#include "cuda_tools.cc"
+#include "cuda_tools.h"
 
 __device__
 double4 cDouble4(
-  const double x,
-  const double y,
-  const double z,
-  const double w
+    const double x,
+    const double y,
+    const double z,
+    const double w
 ) {
   double4 result;
   result.x = x;
@@ -17,8 +17,8 @@ double4 cDouble4(
 
 __device__
 double2 cDouble2(
-  const double x,
-  const double y
+    const double x,
+    const double y
 ) {
   double2 result;
   result.x = x;
@@ -26,34 +26,6 @@ double2 cDouble2(
   return result;
 }
 
-
-
-template<typename T> 
-struct cuda_plus {
-  __device__
-  T operator()(const T a, const T b) {
-    return a + b;
-  } 
-};
-
-template<typename T> 
-struct cuda_minus{
-  __device__
-  T operator()(const T a, const T b) {
-    return a - b;
-  } 
-};
-
-template <typename F>
-__device__
-double4 double4Op(const double4 a, const double4 b, F f) {
-  double4 result;
-  result.x = f(a.x, b.x);
-  result.y = f(a.y, b.y);
-  result.z = f(a.z, b.z);
-  result.w = f(a.w, b.w);
-  return result;
-}
 
 // Oblicza współczynniki prostej regresjii.
 //
@@ -238,6 +210,110 @@ void reglin_simplified(
 	results[gid] = (double)(r);
 }
 
+// Oblicza przybliżenie całki za pomocą wzoru trapezów (trapezodial rule) dla wielu 
+// funkcji jednocześnie.
+//
+// Wartości całkowanych funkcji f(x) znajdują się w kolumnach macierzy ys,
+// zaś argumenty tych funkcji w odpowiadających kolumnach macierzy xs.
+//
+__global__
+void integrate_trapz(
+  double *ys,	// Macierz y'ów, każda kolumna jest zbiorem wartości funkcji f(x).
+	double *xs,	// Macierz x'ów, każda kolumna jest zbiorem argumentów funkcji.
+	const size_t *cols_sizes, 	// Tablica z liczbą wartości f(x) dla każdej kolumny
+  double *integrals,	// Tablica w wynikami całkowania.
+	const size_t width,		// Szerokość macierzy.
+	const	size_t height		// Wysokość macierzy.
+					   	// macierzy ys.
+	) 
+{
+	const uint gid = blockIdx.x * blockDim.x + threadIdx.x;		
+	if(gid >= width)
+	{
+		return;
+	}
+
+	uint idx = gid;
+	const uint col_height = cols_sizes[gid];
+	const uint idx_max = idx + col_height * width;
+
+	double integral = 0.0f;
+	double c = 0.0f;
+
+	double fx1, fx2;
+	double x1, x2;
+
+	fx1 = ys[idx];
+	x1 = xs[idx];
+	idx += width;
+
+	while (idx < idx_max) 
+	{
+		double t, u;
+
+		fx2 = ys[idx];
+		x2 = xs[idx];
+
+		u = (((fx1 + fx2) / 2.0f) * fabs(x2 - x1)) - c;
+		t = integral + u;
+		c = (t - integral) - u;
+
+		integral = t;
+
+		fx1 = fx2;
+		x1 = x2;
+
+		idx += width;
+	}		
+	integrals[gid] = integral;
+}
+
+
+extern "C"
+void calculateTrapz(
+  const double* h_x,
+  const double* h_y,
+  const size_t* h_col_sizes,
+  double* h_results,
+  const size_t width,
+  const size_t height
+) {
+  // allocating kernel data
+  double *d_x, *d_y, *d_results;
+  size_t* d_col_sizes;
+  const size_t matrix_size = width * height * sizeof(double);
+  const size_t size_t_vector_size = width * sizeof(size_t);
+  const size_t double_vector_size = width * sizeof(double);
+  checkCudaErrors(cudaMalloc((void**)&d_x, matrix_size));
+  checkCudaErrors(cudaMalloc((void**)&d_y, matrix_size));
+  checkCudaErrors(cudaMalloc((void**)&d_col_sizes, size_t_vector_size));
+  checkCudaErrors(cudaMalloc((void**)&d_results, double_vector_size));
+  // copying data
+  checkCudaErrors(cudaMemcpy(d_x, h_x, matrix_size, cudaMemcpyHostToDevice));
+  checkCudaErrors(cudaMemcpy(d_y, h_y, matrix_size, cudaMemcpyHostToDevice));
+  checkCudaErrors(cudaMemcpy(d_col_sizes, h_col_sizes, size_t_vector_size, cudaMemcpyHostToDevice));
+  // instatiating kernel
+  const uint threadsPerBlock = BLOCK_DIM;
+  const uint blocksPerGrid = calculateBlockNumber(width, threadsPerBlock);
+  // calling kernel
+  integrate_trapz<<<blocksPerGrid, threadsPerBlock>>>(
+    d_y,
+    d_x,
+    d_col_sizes,
+    d_results,
+    width,
+    height
+  );
+  cudaDeviceSynchronize();
+  checkCudaErrors(cudaGetLastError());
+  //copying memory back
+  checkCudaErrors(cudaMemcpy(h_results, d_results, double_vector_size, cudaMemcpyDeviceToHost));
+  // free memory
+  cudaFree(d_x);
+  cudaFree(d_y);
+  cudaFree(d_col_sizes);
+  cudaFree(d_results);
+}
 
 extern "C"
 void calculateReglinSimplified(

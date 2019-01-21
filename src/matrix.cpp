@@ -56,15 +56,15 @@ SEXP cppMatrixDivideMatrix(
 //matrixMultiplyColVector
 // [[Rcpp::export]]
 SEXP cppMatrixMultiplyCol(
-    Rcpp::NumericMatrix& inputMatrix,
-    Rcpp::NumericVector& vector
+    const Rcpp::NumericMatrix& inputMatrix,
+    const Rcpp::NumericVector& vector
 ) 
 {
-  const size_t width = inputMatrix.cols();   //długość widma
-  const size_t height = inputMatrix.rows();  //liczba kwazarów
+  const size_t width = inputMatrix.rows();   //długość widma
+  const size_t height = inputMatrix.cols();  //liczba kwazarów
   const size_t length = vector.size();
   Rcpp::NumericMatrix result(width, height);
-  matrixMultiplyColVector(&inputMatrix[0], &result[0], &vector[0], width, height, length);
+  matrixMultiplyColVector(&inputMatrix[0], &result[0], &vector[0], width, height);
   return result;
 }
 

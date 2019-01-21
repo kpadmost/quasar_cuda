@@ -67,6 +67,7 @@ feFitting <- function(spectrum, continuum, feTemplate, feWindows, feFitParams) {
   wavelengthsMatrix <- spectrum$wavelengths
   errorsMatrix <- spectrum$errors
   sizes <- spectrum$sizes
+  continuumC <- continuum
   expandedTemplate <- cppExpandTemplate(
     wavelengthsMatrix,
     sizes,
@@ -144,7 +145,8 @@ feFitting <- function(spectrum, continuum, feTemplate, feWindows, feFitParams) {
     feFitParams = feFitParams
   )
   
-  templateFe<- cppMatrixMultiplyCol(expandedTemplateC, feScaleRates)
+  expandedTemplateC<- cppMatrixMultiplyCol(expandedTemplateC, feScaleRates)
+  expandedFeMatrixFiltered <- cppMatrixMultiplyCol(expandedFeMatrixFiltered, feScaleRates)
   
   # calculate fit params
   reducedChisqFiltered <- cppCalculateFeReducesChisq(
@@ -154,17 +156,73 @@ feFitting <- function(spectrum, continuum, feTemplate, feWindows, feFitParams) {
     sizes = sizesFe  
   )
   
+  reducedChisqFull <- cppCalculateFeReducesChisq(
+    spectrumsMatrix = spectrum$spectrums,
+    templateMatrix = expandedTemplateC,
+    errorsMatrix = spectrum$errors,
+    sizes = sizes
+  )
+  equiwalentWidth <- cppCalculateTrapz(
+    x = spectrum$wavelengths,
+    y = cppMatrixDivideMatrix(expandedTemplateC, continuumC),
+    sizes = sizes
+  )
+  
+  #TODO: add fitting within range
+  list(
+    feFitted = expandedTemplateC,
+    scaleRates = feScaleRates,
+    sizesFeWin = sizesFe,
+    reducedChisqWindows = reducedChisqFiltered,
+    reducedChisqFull = reducedChisqFull,
+    equiwalentWidthFull = equiwalentWidth
+    #within range
+  )
+}
+
+elementFitting <- function(
+  wavelengthsMatrix, 
+  spectrumsMatrix, 
+  continuumMatrix,
+  errorsMatrix,
+  sizesVector,
+  element
+) {
+  print('here1')
+  filteredMatrices <- cppFilterWithWavelengthWindows(
+    wavelengthsMatrix = wavelengthsMatrix,
+    spectrumsMatrix = spectrumsMatrix,
+    errorsMatrix = continuumMatrix,
+    sizesVectorR = sizesVector,
+    continuumWindowsVectorR = list(c(element[['left']], element[['right']]))
+  )
+  sizes <- cppCountNInfSize(filteredMatrices$spectrumsMatrix)
+  maxSize <- max(sizes)
+  #TODO: return fit repeated
+  if(maxSize == 0) 
+    return(fit=F)
+  spectrumsFiltered <- cppCopyNInf(filteredMatrices$spectrumsMatrix, maxSize)
+  wavelengthsFiltered <- cppCopyNInf(filteredMatrices$wavelengthsMatrix, maxSize)
+  continuumFiltered <- cppCopyNInf(filteredMatrices$errorsMatrix, maxSize)
+  
+  fitInitialResults <- rep(list(c(element[['a']], element[['b']], element[['c']], 0)), nrow(wavelengthsMatrix))
+  fitResults <- cppFitGaussian(
+    x = wavelengthsFiltered,
+    y = spectrumsFiltered,
+    sizes = sizes,
+    results = fitInitialResults
+  )
+  
+  gaussianMatrix <- cppCalculateGaussian(
+    wavelengthsFiltered,
+    fitResults,
+    sizes
+  )
+  
   print('here')
-  #scale template
+  quit(1)
 }
 
-elementFitting <- function() {
-  
-}
-
-loadMatrices <- function() {
-  
-}
 
 testFitting <- function() {
   # load n spectra
@@ -198,8 +256,11 @@ testFitting <- function() {
   wavelengths <- rFilterInfs(filteredMatrices$wavelengthsMatrix)
   errors <- rFilterInfs(filteredMatrices$errorsMatrix)
   
+  elements <- loadDefaultSpectralLines()
   
-  for(i in seq(1:3)) {
+  spectrumsC <- spectrums
+  iter <- 3
+  for(i in seq(1:iter)) {
     continuumResult <- continuumFitting(
       wavelengths,
       spectrums,
@@ -207,11 +268,11 @@ testFitting <- function() {
       sizesVector,
       continuumParams
     )
-    
+    spectrums <- spectrumsC
     feFitResults <- feFitting(
       list(
         wavelengths=wavelengths,
-        spectrums=cppMatrixMinusMatrix(spectrums, continuumResult$cfun),
+        spectrums=cppMatrixMinusMatrix(spectrumsC, continuumResult$cfun),
         errors=errors,
         sizes=sizesVector
         ),
@@ -220,7 +281,27 @@ testFitting <- function() {
       feWindows,
       feFitParams = feFitParams
     )
+    
+    if(i < iter) {
+      spectrums <- cppMatrixMinusMatrix(spectrums, feFitResults$feFitted)
+    }
   }
+  
+  spectrums <- cppMatrixMinusMatrix(spectrumsC, feFitResults$feFitted)
+  spectrums <- cppMatrixMinusMatrix(spectrums, continuumResult$cfun)
+  
+  for(i in 1:nrow(elements)) {
+    element <- elements[i,]
+    fitParams <- elementFitting(
+      wavelengthsMatrix = wavelengths,
+      spectrumsMatrix = spectrums,
+      continuumMatrix = continuumResult$cfun,
+      errorsMatrix = errors,
+      sizesVector = sizesVector,
+      element = element
+    )
+  }       
+  
   
   
   print('finish')

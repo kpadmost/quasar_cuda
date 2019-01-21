@@ -1,4 +1,4 @@
-#include "cuda_tools.cc"
+#include "cuda_tools.h"
 
 #include <cfloat>
 
@@ -407,7 +407,7 @@ void template_f(
 )
 {
   // allocating kernel data
-  double *d_input, d_output;
+  double *d_input, *d_output;
   const size_t matrix_size = width * height * sizeof(double);
   checkCudaErrors(cudaMalloc((void**)&d_output, matrix_size));
   checkCudaErrors(cudaMalloc((void**)&d_input, matrix_size));

@@ -61,3 +61,27 @@ NumericVector cppChisq(
   calculateChisq(&x[0],&y[0],&e[0],&sizesVector[0],&results[0],width,height);
   return NumericVector(results.begin(), results.end());
 }
+
+/*extern "C"
+ void calculateTrapz(
+     const double* h_x,
+const double* h_y,
+const size_t* h_col_sizes,
+double* h_results,
+const size_t width,
+const size_t height
+)*/
+
+// [[Rcpp::export]]
+NumericVector cppCalculateTrapz(
+  const NumericMatrix& x,
+  const NumericMatrix& y,
+  const IntegerVector& sizes
+) {
+  const size_t width = x.rows();
+  const size_t height = x.cols();
+  std::vector<size_t> sizesVector = as<std::vector<size_t> > (sizes);
+  NumericVector result(width);
+  calculateTrapz(&x[0], &y[0], &sizesVector[0], &result[0], width, height);
+  return result;
+}

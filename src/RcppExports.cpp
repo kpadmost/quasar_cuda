@@ -163,6 +163,59 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// cppFitGaussian
+SEXP cppFitGaussian(const NumericMatrix& x, const NumericMatrix& y, const IntegerVector& sizes, SEXP results);
+RcppExport SEXP _QuasarFitCuda_cppFitGaussian(SEXP xSEXP, SEXP ySEXP, SEXP sizesSEXP, SEXP resultsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type y(ySEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type sizes(sizesSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type results(resultsSEXP);
+    rcpp_result_gen = Rcpp::wrap(cppFitGaussian(x, y, sizes, results));
+    return rcpp_result_gen;
+END_RCPP
+}
+// cppCalculateFWHM
+NumericVector cppCalculateFWHM(SEXP fitParams);
+RcppExport SEXP _QuasarFitCuda_cppCalculateFWHM(SEXP fitParamsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type fitParams(fitParamsSEXP);
+    rcpp_result_gen = Rcpp::wrap(cppCalculateFWHM(fitParams));
+    return rcpp_result_gen;
+END_RCPP
+}
+// cppCalculateGaussianChisq
+NumericVector cppCalculateGaussianChisq(const NumericMatrix& wavelengthsMatrix, const NumericMatrix& spectrumsMatrix, const NumericVector& errorsMatrix, SEXP fitGaussianParams, const IntegerVector& sizes);
+RcppExport SEXP _QuasarFitCuda_cppCalculateGaussianChisq(SEXP wavelengthsMatrixSEXP, SEXP spectrumsMatrixSEXP, SEXP errorsMatrixSEXP, SEXP fitGaussianParamsSEXP, SEXP sizesSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type wavelengthsMatrix(wavelengthsMatrixSEXP);
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type spectrumsMatrix(spectrumsMatrixSEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type errorsMatrix(errorsMatrixSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type fitGaussianParams(fitGaussianParamsSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type sizes(sizesSEXP);
+    rcpp_result_gen = Rcpp::wrap(cppCalculateGaussianChisq(wavelengthsMatrix, spectrumsMatrix, errorsMatrix, fitGaussianParams, sizes));
+    return rcpp_result_gen;
+END_RCPP
+}
+// cppCalculateGaussian
+NumericMatrix cppCalculateGaussian(const NumericMatrix& xMatrix, SEXP fitGaussianParams, const IntegerVector& sizes);
+RcppExport SEXP _QuasarFitCuda_cppCalculateGaussian(SEXP xMatrixSEXP, SEXP fitGaussianParamsSEXP, SEXP sizesSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type xMatrix(xMatrixSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type fitGaussianParams(fitGaussianParamsSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type sizes(sizesSEXP);
+    rcpp_result_gen = Rcpp::wrap(cppCalculateGaussian(xMatrix, fitGaussianParams, sizes));
+    return rcpp_result_gen;
+END_RCPP
+}
 // cppMatrixLog10
 Rcpp::NumericMatrix cppMatrixLog10(const Rcpp::NumericMatrix& inputMatrix);
 RcppExport SEXP _QuasarFitCuda_cppMatrixLog10(SEXP inputMatrixSEXP) {
@@ -211,13 +264,13 @@ BEGIN_RCPP
 END_RCPP
 }
 // cppMatrixMultiplyCol
-SEXP cppMatrixMultiplyCol(Rcpp::NumericMatrix& inputMatrix, Rcpp::NumericVector& vector);
+SEXP cppMatrixMultiplyCol(const Rcpp::NumericMatrix& inputMatrix, const Rcpp::NumericVector& vector);
 RcppExport SEXP _QuasarFitCuda_cppMatrixMultiplyCol(SEXP inputMatrixSEXP, SEXP vectorSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::NumericMatrix& >::type inputMatrix(inputMatrixSEXP);
-    Rcpp::traits::input_parameter< Rcpp::NumericVector& >::type vector(vectorSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type inputMatrix(inputMatrixSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type vector(vectorSEXP);
     rcpp_result_gen = Rcpp::wrap(cppMatrixMultiplyCol(inputMatrix, vector));
     return rcpp_result_gen;
 END_RCPP
@@ -297,6 +350,19 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// cppCalculateTrapz
+NumericVector cppCalculateTrapz(const NumericMatrix& x, const NumericMatrix& y, const IntegerVector& sizes);
+RcppExport SEXP _QuasarFitCuda_cppCalculateTrapz(SEXP xSEXP, SEXP ySEXP, SEXP sizesSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type y(ySEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type sizes(sizesSEXP);
+    rcpp_result_gen = Rcpp::wrap(cppCalculateTrapz(x, y, sizes));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_QuasarFitCuda_cppCalculateCfunDcfun", (DL_FUNC) &_QuasarFitCuda_cppCalculateCfunDcfun, 3},
@@ -311,6 +377,10 @@ static const R_CallMethodDef CallEntries[] = {
     {"_QuasarFitCuda_cppFilterWithValues", (DL_FUNC) &_QuasarFitCuda_cppFilterWithValues, 4},
     {"_QuasarFitCuda_cppFilterWithParagon", (DL_FUNC) &_QuasarFitCuda_cppFilterWithParagon, 4},
     {"_QuasarFitCuda_cppFilterWithWavelengthWindows", (DL_FUNC) &_QuasarFitCuda_cppFilterWithWavelengthWindows, 5},
+    {"_QuasarFitCuda_cppFitGaussian", (DL_FUNC) &_QuasarFitCuda_cppFitGaussian, 4},
+    {"_QuasarFitCuda_cppCalculateFWHM", (DL_FUNC) &_QuasarFitCuda_cppCalculateFWHM, 1},
+    {"_QuasarFitCuda_cppCalculateGaussianChisq", (DL_FUNC) &_QuasarFitCuda_cppCalculateGaussianChisq, 5},
+    {"_QuasarFitCuda_cppCalculateGaussian", (DL_FUNC) &_QuasarFitCuda_cppCalculateGaussian, 3},
     {"_QuasarFitCuda_cppMatrixLog10", (DL_FUNC) &_QuasarFitCuda_cppMatrixLog10, 1},
     {"_QuasarFitCuda_cppMatrixAddScalar", (DL_FUNC) &_QuasarFitCuda_cppMatrixAddScalar, 2},
     {"_QuasarFitCuda_cppMatrixMinusMatrix", (DL_FUNC) &_QuasarFitCuda_cppMatrixMinusMatrix, 2},
@@ -322,6 +392,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_QuasarFitCuda_cppReglin", (DL_FUNC) &_QuasarFitCuda_cppReglin, 3},
     {"_QuasarFitCuda_cppReglinSimplified", (DL_FUNC) &_QuasarFitCuda_cppReglinSimplified, 3},
     {"_QuasarFitCuda_cppChisq", (DL_FUNC) &_QuasarFitCuda_cppChisq, 4},
+    {"_QuasarFitCuda_cppCalculateTrapz", (DL_FUNC) &_QuasarFitCuda_cppCalculateTrapz, 3},
     {NULL, NULL, 0}
 };
 

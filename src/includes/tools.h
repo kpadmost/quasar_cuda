@@ -34,4 +34,14 @@ void calculateChisq(
     const size_t height
 );
 
+extern "C"
+void calculateTrapz(
+    const double* h_x,
+    const double* h_y,
+    const size_t* h_col_sizes,
+    double* h_results,
+    const size_t width,
+    const size_t height
+);
+
 #endif

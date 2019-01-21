@@ -1,4 +1,4 @@
-#include "cuda_tools.cc"
+#include "cuda_tools.h"
 
 #include <math_constants.h>
 

@@ -10,10 +10,40 @@
 #include <math_constants.h>
 
 
-//TODO: camelcase, code author
 
 #define BLOCK_DIM 16
 #define ASTRO_OBJ_SIZE 4096
+#define C 299792458.0
+
+
+template<typename T> 
+struct cuda_plus {
+  __device__
+  inline T operator()(const T a, const T b) {
+    return a + b;
+  } 
+};
+
+template<typename T> 
+struct cuda_minus{
+  __device__
+  inline T operator()(const T a, const T b) {
+    return a - b;
+  } 
+};
+
+template <typename F>
+__device__
+double4 double4Op(const double4 a, const double4 b, F f) {
+  double4 result;
+  result.x = f(a.x, b.x);
+  result.y = f(a.y, b.y);
+  result.z = f(a.z, b.z);
+  result.w = f(a.w, b.w);
+  return result;
+}
+
+
 #define checkCudaErrors(val) check( (val), #val, __FILE__, __LINE__)
 
 template<typename T>

@@ -1,4 +1,4 @@
-#include "cuda_tools.cc"
+#include "cuda_tools.h"
 // done
 __global__ 
 void fix_reglin_results

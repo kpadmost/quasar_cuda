@@ -1,6 +1,6 @@
 
 
-#include "cuda_tools.cc"
+#include "cuda_tools.h"
 
 #define THREADS_NUM 512
 
@@ -103,8 +103,7 @@ void matrix_multiply_vector
 		const double *matrix,
 		const double *vector,	// Wektor, których zawiera co najmniej
 		double *output,	// Wynik
-		const uint row_size,
-		const uint col_size
+		const uint row_size
 	)
 {
 	// gid0 - numer wiersza macierzy input
@@ -112,10 +111,10 @@ void matrix_multiply_vector
 	// gid1 - numer elementu w wierszu (numer kolumny).
 	uint gid1 = blockIdx.y * blockDim.y + threadIdx.y;
 
-	if(gid1 >= row_size || gid0 >= col_size)
+	if(gid1 >= row_size)
 		return;
 	
-	uint idx = gid0 * row_size + gid1;
+	const uint idx = gid0 * row_size + gid1;
 	uint col_idx = gid1;
 	
 	output[idx] = matrix[idx] * vector[col_idx];
@@ -262,13 +261,12 @@ void matrixMultiplyColVector(
     double* h_output,
     const double* h_vector,
     const size_t width,
-    const size_t height,
-    const size_t length
+    const size_t height
 ) 
 {
   double *d_input = 0, *d_output = 0, *d_vector = 0;
   const size_t size = width * height * sizeof(double);
-  const size_t vSize = length * sizeof(double);
+  const size_t vSize = width * sizeof(double);
   
   checkCudaErrors(cudaSetDevice(0));
   checkCudaErrors(cudaMalloc((void**)&d_input, size));
@@ -277,16 +275,13 @@ void matrixMultiplyColVector(
   checkCudaErrors(cudaMemcpy(d_input, h_input, size, cudaMemcpyHostToDevice));
   checkCudaErrors(cudaMemcpy(d_vector, h_vector, vSize, cudaMemcpyHostToDevice));
   //kernel invocation
-  dim3 threadsPerBlock(32, 32);
-  dim3 blocksPerGrid(1, 1);
-  blocksPerGrid.x = ceil(double(width)/double(threadsPerBlock.x));
-  blocksPerGrid.y = ceil(double(height)/double(threadsPerBlock.y));
+  dim3 threadsPerBlock(1, BLOCK_DIM);
+  dim3 blocksPerGrid(height, calculateBlockNumber(width, threadsPerBlock.y));
   matrix_multiply_vector<<<blocksPerGrid, threadsPerBlock>>>(
     d_input,
     d_vector, 
     d_output, 
-    width, 
-    height
+    width
   );
   checkCudaErrors(cudaGetLastError());
   checkCudaErrors(cudaMemcpy(h_output, d_output, size, cudaMemcpyDeviceToHost));

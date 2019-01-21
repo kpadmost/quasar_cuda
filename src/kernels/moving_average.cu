@@ -1,4 +1,4 @@
-#include "cuda_tools.cc"
+#include "cuda_tools.h"
 
 __global__
 void moving_average

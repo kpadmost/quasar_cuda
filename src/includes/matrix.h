@@ -15,8 +15,7 @@ void matrixMultiplyColVector(
     double* output,
     const double* scalarVector,
     const size_t width,
-    const size_t height,
-    const size_t length
+    const size_t height
 );
 
 extern "C"
