@@ -11,7 +11,7 @@
 
 
 
-#define BLOCK_DIM 16
+#define BLOCK_DIM 32
 #define ASTRO_OBJ_SIZE 4096
 #define C 299792458.0
 

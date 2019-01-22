@@ -162,7 +162,6 @@ void generateWavelengths(
   dim3 blocksPerGrid(1, 1);
   blocksPerGrid.x = spectrum_number / threadsPerBlock.x;
   blocksPerGrid.y = ASTRO_OBJ_SIZE / threadsPerBlock.y;
-  printf("x %d y %d", blocksPerGrid.x,  blocksPerGrid.y);
   generateWavelengthsMatrix<<<blocksPerGrid, threadsPerBlock>>>(d_output, d_params);
   checkCudaErrors(cudaGetLastError());
   cudaDeviceSynchronize();

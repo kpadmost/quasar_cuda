@@ -118,8 +118,6 @@ List cppFilterWithWavelengthWindows(
   NumericMatrix errorsMatrixC = clone(errorsMatrix);
   
   std::vector<double2> continuumWindowsVector = as<std::vector<double2>>(continuumWindowsVectorR);
-  for(auto i = continuumWindowsVector.begin(); i != continuumWindowsVector.end(); ++i)
-    Rcout << "s " << i->x << " " << i->y << " ";
   std::vector<size_t> sizesVector(sizesVectorR.begin(), sizesVectorR.end());
   filterWithWavelengthsWindows(
     &wavelengthsMatrixC[0],

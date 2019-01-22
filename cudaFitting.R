@@ -171,11 +171,13 @@ feFitting <- function(spectrum, continuum, feTemplate, feWindows, feFitParams) {
   #TODO: add fitting within range
   list(
     feFitted = expandedTemplateC,
-    scaleRates = feScaleRates,
-    sizesFeWin = sizesFe,
-    reducedChisqWindows = reducedChisqFiltered,
-    reducedChisqFull = reducedChisqFull,
-    equiwalentWidthFull = equiwalentWidth
+    fitParams = list(
+      scaleRates = feScaleRates,
+      sizesFeWin = sizesFe,
+      reducedChisqWindows = reducedChisqFiltered,
+      reducedChisqFull = reducedChisqFull,
+      equiwalentWidthFull = equiwalentWidth
+    )
     #within range
   )
 }
@@ -188,7 +190,6 @@ elementFitting <- function(
   sizesVector,
   element
 ) {
-  print('here1')
   filteredMatrices <- cppFilterWithWavelengthWindows(
     wavelengthsMatrix = wavelengthsMatrix,
     spectrumsMatrix = spectrumsMatrix,
@@ -200,7 +201,7 @@ elementFitting <- function(
   maxSize <- max(sizes)
   #TODO: return fit repeated
   if(maxSize == 0) 
-    return(fit=F)
+    return(list(fit=F))
   spectrumsFiltered <- cppCopyNInf(filteredMatrices$spectrumsMatrix, maxSize)
   wavelengthsFiltered <- cppCopyNInf(filteredMatrices$wavelengthsMatrix, maxSize)
   continuumFiltered <- cppCopyNInf(filteredMatrices$errorsMatrix, maxSize)
@@ -218,9 +219,28 @@ elementFitting <- function(
     fitResults,
     sizes
   )
+  gaussianMatrix <- cppMatrixDivideMatrix(gaussianMatrix, continuumFiltered)
+  gaussianChisq <- cppCalculateGaussianChisq(
+    wavelengthsMatrix = wavelengthsMatrix,
+    spectrumsMatrix = spectrumsMatrix,
+    errorsMatrix = errorsMatrix,
+    fitGaussianParams = fitResults,
+    sizes = sizesVector
+  )
+  gaussianEquiwalentWidth <- cppCalculateTrapz(
+    x = wavelengthsFiltered,
+    y = gaussianMatrix,
+    sizes = sizes
+  )
+  gaussianFWHM <- cppCalculateFWHM(fitResults)
   
-  print('here')
-  quit(1)
+  list(
+    fitResults = fitResults,
+    equiwalentWidth = gaussianEquiwalentWidth,
+    chisq = gaussianChisq,
+    fwhm  = gaussianFWHM,
+    fit=T
+  )
 }
 
 
@@ -287,9 +307,10 @@ testFitting <- function() {
     }
   }
   
+  allFitParams <- append(list(continuum = continuumResult$fitParams), list(feFit=feFitResults$fitParams))
   spectrums <- cppMatrixMinusMatrix(spectrumsC, feFitResults$feFitted)
   spectrums <- cppMatrixMinusMatrix(spectrums, continuumResult$cfun)
-  
+  elementsFitParams <- list()
   for(i in 1:nrow(elements)) {
     element <- elements[i,]
     fitParams <- elementFitting(
@@ -300,45 +321,19 @@ testFitting <- function() {
       sizesVector = sizesVector,
       element = element
     )
-  }       
+    if(fitParams$fit) {
+        fitParams$fit <- NULL
+        elementsFitParams <- append(elementsFitParams, list(list(element=element$name, params=fitParams)))
+      }
+    }
+    
+  allFitParams <- append(allFitParams, list(elements = elementsFitParams))
   
   
-  
-  print('finish')
-  
+  allFitParams
 }
 
-testFittingQ <- function() {
-  # load n spectra
-  quas_list <- 'quasar_list'
-  folder <- 'spectra'
-  quasars <- loadQuasarsFromFolder(folder, quas_list)
-  # fill till blockSize with 0 -s
-  #q
-  params <- getLambdaParams(quasars)
-  wm <- cppGenerateWavelenghtMatrix(params)
-  wm <- t(wm)
-  
-  list(
-    flux = getFluxMatrix(quasars),
-    error = getErrorMatrix(quasars),
-    lambda = wm,
-    sizes = getSizesVector(quasars)
-  )
-}
 
-testFQ <- function() {
-  library(QuasarFitCuda)
-  m <- testFittingQ()
-  cppFilterWithValues(m$lambda, m$flux, m$error, m$sizes)
-}
 
-qP <- function() {
-  d1 <- list(c(3.57840, 0.00010, 1.80677, 0.00000))
-  d2 <- list(c(3.57900, 0.00010, 1.51807, 0.00000))
-  dm <- list(rep(0, 4))
-  lmx <- rep(dm, 30)
-  c(d1, d2, lmx)
-}
 
-testFitting()
+fittingParams <- testFitting()

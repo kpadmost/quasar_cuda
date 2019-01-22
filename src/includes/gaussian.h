@@ -38,7 +38,7 @@ extern "C"
 void calculateGaussian(
     const double *h_x,
     double *h_y,
-    const double4 *h_gaussian,
+    const double4* h_gaussian,
     const uint *h_sizes,
     const uint width,
     const uint height

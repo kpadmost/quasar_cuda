@@ -1,6 +1,6 @@
 #include "cuda_tools.h"
 #include <cfloat>
-
+#include <vector>
 __device__
 inline double4 createDouble4(
     const double x,
@@ -384,42 +384,7 @@ void calc_fwhm
 //
 // Oblicza funkcje Gaussa, gdzie xs jest macierzą z argumentami funkcji.
 //
-__global__
-void calc_gaussian(
-		const double *xs,	// Argumenty dla których obliczamy gaussiana
-		double *ys,	// Wyniki funkcji
-		const double4 *gparams,	// Współczynniki funkcji Gaussa
-		const uint *cols_sizes,
-		const uint width		
-	)
-{
-	const uint gid0 = blockDim.x * blockIdx.x + threadIdx.x;	
-	const uint gid1 = blockDim.y * blockIdx.y + threadIdx.y;	
-	const uint col_height = cols_sizes[gid0];
-	printf("here in x %d + %d w %d\n", gid0, gid1, col_height);
-	if(gid0 >= width || gid1 >= col_height)
-	{
-	  
-		return;
-	}
-	// Indeks
-	const uint idx = gid0 + width * gid1;	
-	
-	// Pobranie x
-	const double x = xs[idx];
 
-	// Pobranie parametrów dla tej kolumny x'ów
-	__shared__ double4 abc_local;
-	double4 abc;
-	if(gid1 == 0)
-	{
-		abc_local = gparams[gid0];
-	}
-	__syncthreads();
-	abc = abc_local;
-	// Zapis
-	ys[idx] = abc.x * exp(-0.5 * pow((x - abc.y) / abc.z, 2));
-}
 
 __global__
 void calc_gaussian_chisq
@@ -555,6 +520,37 @@ void calculateGaussianChisq(
   cudaFree(d_chisq);
 }
 
+__global__
+void calc_gaussian(
+		const double *xs,	// Argumenty dla których obliczamy gaussiana
+		double *ys,	// Wyniki funkcji
+		const double4 *gparams,	// Współczynniki funkcji Gaussa
+		const uint *cols_sizes,
+		const uint width		
+	)
+{
+	const uint gid0 = blockDim.x * blockIdx.x + threadIdx.x;	
+	const uint gid1 = blockDim.y * blockIdx.y + threadIdx.y;	
+	const uint col_height = cols_sizes[gid0];
+	if(gid0 >= width || gid1 >= col_height)
+	{
+	  
+		return;
+	}
+	// Indeks
+	const uint idx = gid0 + width * gid1;	
+	
+	// Pobranie x
+	const double x = xs[idx];
+
+	// Pobranie parametrów dla tej kolumny x'ów
+
+	
+	const double4 abc = gparams[gid0];
+	// Zapis
+	ys[idx] = abc.x * exp(-0.5 * pow((x - abc.y) / abc.z, 2));
+}
+
 extern "C"
 void calculateGaussian(
   const double *h_x,
@@ -568,8 +564,9 @@ void calculateGaussian(
   double *d_x, *d_y;
   double4 *d_gaussian;
   uint *d_sizes;
+  
   const size_t matrix_size = width * height * sizeof(double);
-  const size_t double4_vector_size= width * sizeof(double4);
+  const size_t double4_vector_size = width * sizeof(double4);
   const size_t uint_vector_size = width * sizeof(uint);
   checkCudaErrors(cudaMalloc((void**)&d_x, matrix_size));
   checkCudaErrors(cudaMalloc((void**)&d_y, matrix_size));
@@ -581,7 +578,7 @@ void calculateGaussian(
   checkCudaErrors(cudaMemcpy(d_sizes, h_sizes, uint_vector_size, cudaMemcpyHostToDevice));
   // instatiating kernel
   const dim3 threadsPerBlock(1, BLOCK_DIM, 1);
-  const dim3 blocksPerGrid(width, calculateBlockNumber(height +  50, threadsPerBlock.y), 1);
+  const dim3 blocksPerGrid(width, calculateBlockNumber(height, threadsPerBlock.y), 1);
   // calling kernel
   calc_gaussian<<<blocksPerGrid, threadsPerBlock>>>(d_x, d_y, d_gaussian, d_sizes, width);
   cudaDeviceSynchronize();

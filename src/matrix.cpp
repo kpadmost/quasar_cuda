@@ -42,12 +42,10 @@ SEXP cppMatrixDivideMatrix(
     Rcpp::NumericMatrix& inputMatrix,
     Rcpp::NumericMatrix& divisorMatrix
 ) {
-  const size_t width = inputMatrix.cols();   //długość widma
-  const size_t height = inputMatrix.rows();  //liczba kwazarów
+  const size_t width = inputMatrix.rows();   //długość widma
+  const size_t height = inputMatrix.cols();  //liczba kwazarów
   
-  //TODO: check rows/cols?
-  double* h_result = new double[width * height]; 
-  Rcpp::NumericMatrix output(height, width);
+  Rcpp::NumericMatrix output(width, height);
   matrixDivideMatrix(&inputMatrix[0], &divisorMatrix[0], &output[0], width, height);
 
   return output;
@@ -86,8 +84,6 @@ SEXP cppMatrixTranspose(
       h_input[j * width + i] = inputMatrix(j, i);
   }
   
-  for(int i = 0; i < 10; ++i)
-    Rcpp::Rcout << inputMatrix[i] << std::endl;
   
   Rcpp::NumericMatrix result(width, height);
   matrixTranspose(&inputMatrix[0], &h_output[0], width, height);

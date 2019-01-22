@@ -75,12 +75,11 @@ void matrix_minus_matrix
 __global__
 void matrix_divide_matrix
 	(
-		const double* divident,	// Macierz
+		const double *divident,	// Macierz
 					// Rozmiar wiersza macierzy.
-		const double* divisor,		// Macierz do odjęcia
-		double* output,	// Wynik
-		const uint row_size,
-		const uint col_size
+		const double *divisor,		// Macierz do odjęcia
+		double *output,	// Wynik
+		const uint row_size
 	)
 {
 	// gid0 - numer wiersza macierzy input
@@ -88,7 +87,7 @@ void matrix_divide_matrix
 	// gid1 - numer elementu w wierszu.
 	uint gid1 = blockIdx.y * blockDim.y + threadIdx.y;
 
-	if(gid1 >= row_size || gid0 >= col_size)
+	if(gid1 >= row_size)
 	{
 		return;
 	}
@@ -357,16 +356,13 @@ void matrixDivideMatrix(
     checkCudaErrors(cudaMemcpy(d_divided, h_divided, size, cudaMemcpyHostToDevice));
     checkCudaErrors(cudaMemcpy(d_divisor, h_divisor, size, cudaMemcpyHostToDevice));
     //kernel invocation
-    dim3 threadsPerBlock(512, 2);
-    dim3 blocksPerGrid(1, 1);
-    blocksPerGrid.x = ceil(double(width)/double(threadsPerBlock.x));
-    blocksPerGrid.y = ceil(double(height)/double(threadsPerBlock.y));
+    dim3 threadsPerBlock(1, BLOCK_DIM);
+    dim3 blocksPerGrid(height, calculateBlockNumber(width, threadsPerBlock.y));
     matrix_divide_matrix<<<blocksPerGrid, threadsPerBlock>>>(
       d_divided,
       d_divisor,
       d_output,
-      width, 
-      height
+      width
     );
     //device to host memory copy
     checkCudaErrors(cudaMemcpy(h_output, d_output, size, cudaMemcpyDeviceToHost));

@@ -77,8 +77,8 @@ NumericMatrix cppCalculateGaussian(
 ) {
   const uint width = xMatrix.nrow();
   const uint height = xMatrix.ncol();
-  std::vector<uint> sizesVector = Rcpp::as<std::vector<uint>>(sizes);
   std::vector<double4> fitParamsVector = Rcpp::as<std::vector<double4>>(fitGaussianParams);
+  std::vector<uint> sizesVector = Rcpp::as<std::vector<uint>>(sizes);
   NumericMatrix result(width, height);
   calculateGaussian(
     &xMatrix[0],
