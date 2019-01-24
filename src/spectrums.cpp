@@ -32,7 +32,7 @@ NumericMatrix cppGenerateWavelenghtMatrix(SEXP params) {
 }
 
 
-//NOT TESTED!
+
 // [[Rcpp:export]]
 NumericMatrix cppSingleInterpolation(NumericMatrix xMatrix, NumericMatrix yMatrix, IntegerVector xSizes, 
                                      NumericMatrix sMatrix, NumericMatrix tMatrix, const size_t sSizes) {

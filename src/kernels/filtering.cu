@@ -315,7 +315,7 @@ void filterNonpositive(
   checkCudaErrors(cudaMemcpy(d_errors, h_errors, matrix_size, cudaMemcpyHostToDevice));
   checkCudaErrors(cudaMemcpy(d_real_sizes, h_real_sizes, sizes_v_size, cudaMemcpyHostToDevice));
   // instatiating kernel
-  const dim3 threadsPerBlock(1, BLOCK_DIM * 4, 1);
+  const dim3 threadsPerBlock(1, BLOCK_DIM, 1);
   const dim3 blocksPerGrid(width / threadsPerBlock.x, ASTRO_OBJ_SIZE / threadsPerBlock.y, 1);
   // calling kernel
   filter_nonpositive<<<blocksPerGrid, threadsPerBlock>>>(

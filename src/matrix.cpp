@@ -29,9 +29,9 @@ SEXP cppMatrixMinusMatrix(
     Rcpp::NumericMatrix& inputMatrix,
     Rcpp::NumericMatrix& substrahendMatrix
 ) {
-  const size_t width = inputMatrix.cols();   //długość widma
-  const size_t height = inputMatrix.rows();  //liczba kwazarów
-  Rcpp::NumericMatrix result(inputMatrix.nrow(), inputMatrix.ncol());
+  const size_t width = inputMatrix.rows();   //długość widma
+  const size_t height = inputMatrix.cols();  //liczba kwazarów
+  Rcpp::NumericMatrix result(width, height);
   matrixSubstractMatrix(&inputMatrix[0], &substrahendMatrix[0], &result[0], width, height);
 
   return result;

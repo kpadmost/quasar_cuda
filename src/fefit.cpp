@@ -82,7 +82,6 @@ NumericMatrix cppExpandTemplate(
 ) {
   const size_t width = wavelengths.rows();
   const size_t height = wavelengths.cols();
-  
   std::vector<size_t> sizesVector = as<std::vector<size_t> > (sizes);
   NumericVector feWavelengthsLog10 = clone(feWavelengths);
   std::transform(feWavelengthsLog10.begin(), feWavelengthsLog10.end(), feWavelengthsLog10.begin(),

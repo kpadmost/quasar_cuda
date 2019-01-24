@@ -12,13 +12,13 @@ void generateWavelengthsMatrix
 	)
 {
 	// gid0 - numer widma kwazaru
-	uint gid0 = blockIdx.x * blockDim.x + threadIdx.x;
+	const uint gid0 = blockIdx.x * blockDim.x + threadIdx.x;
 	
 	// parametry a, b i z kwazaru
   double4 abz_ = params_vector[gid0];
 	
 	// gid1 - numer elementu widma (indeks od 0 do 4095)
-	uint gid1 = blockIdx.y * blockDim.y + threadIdx.y;
+	const uint gid1 = blockIdx.y * blockDim.y + threadIdx.y;
 	uint idx = gid0 * gridDim.y * blockDim.y  + gid1;
 	
 	// Wyliczenie lambdy dla tego gid1
@@ -158,10 +158,8 @@ void generateWavelengths(
   checkCudaErrors(cudaMalloc((void**)&d_output, matrix_size));
   checkCudaErrors(cudaMalloc((void**)&d_params, spectrum_number * sizeof(double4)));
   checkCudaErrors(cudaMemcpy(d_params, h_params, spectrum_number * sizeof(double4), cudaMemcpyHostToDevice));
-  dim3 threadsPerBlock(1, 512);
-  dim3 blocksPerGrid(1, 1);
-  blocksPerGrid.x = spectrum_number / threadsPerBlock.x;
-  blocksPerGrid.y = ASTRO_OBJ_SIZE / threadsPerBlock.y;
+  dim3 threadsPerBlock(1, BLOCK_DIM);
+  dim3 blocksPerGrid(spectrum_number, ASTRO_OBJ_SIZE / threadsPerBlock.y);
   generateWavelengthsMatrix<<<blocksPerGrid, threadsPerBlock>>>(d_output, d_params);
   checkCudaErrors(cudaGetLastError());
   cudaDeviceSynchronize();
@@ -184,16 +182,14 @@ void singleInterpolation(
   double *d_matrix_x, *d_matrix_y, *d_matrix_s, *d_matrix_t, *d_output;
   size_t *d_sizes_x;
   const size_t x_matrix_size = size * ASTRO_OBJ_SIZE * sizeof(double);
-  const size_t s_matrix_size = size * size_s * sizeof(double);
+  const size_t s_matrix_size = size_s * sizeof(double);
   const size_t sizes_vector_size = size * sizeof(size_t);
   checkCudaErrors(cudaMalloc((void**)&d_output, x_matrix_size));
   checkCudaErrors(cudaMalloc((void**)&d_matrix_x, x_matrix_size));
   checkCudaErrors(cudaMalloc((void**)&d_matrix_y, x_matrix_size));
   checkCudaErrors(cudaMalloc((void**)&d_matrix_s, s_matrix_size));
   checkCudaErrors(cudaMalloc((void**)&d_matrix_t, s_matrix_size));
-  
   checkCudaErrors(cudaMalloc((void**)&d_sizes_x, sizes_vector_size));
-  
   
   
   checkCudaErrors(cudaMemcpy(d_matrix_x, h_matrix_x, x_matrix_size, cudaMemcpyHostToDevice));
@@ -204,17 +200,6 @@ void singleInterpolation(
   
   const uint threadsPerBlock = BLOCK_DIM;
   const uint blocksPerGrid = calculateBlockNumber(size, threadsPerBlock);
-  /*void single_interpolation
-	(
-		double *x_matrix,	// Długości dla widm
-		double *y_matrix,	// Widma po kolumnach
-		size_t  *sizes,			// Rozmiary widm
-		const uint size,				// Ilość widm (ilość kolumn)
-		const double *s_matrix,	// Długości fal widma, które dodajemy
-		const double *t_matrix,	// Widmo, które dodajemy
-		const uint to_add_spectrum_size, 	
-		double *output_matrix		// Macierz zapisu wyniku sumy
-	)*/
   single_interpolation<<<blocksPerGrid, threadsPerBlock>>>(
     d_matrix_x,
     d_matrix_y,

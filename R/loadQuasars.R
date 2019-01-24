@@ -1,6 +1,6 @@
 #' @importFrom parseFITS readQuasarInfo
 
-BLOCK_SIZE <- 32
+BLOCK_SIZE <- 512
 ASTRO_OBJ_SIZE <- 4096
 
 #' @export
@@ -52,6 +52,7 @@ getLambdaParams <- function(quasars, complemented=T) {
   )
   if(complemented) {
     comSize <- BLOCK_SIZE - (length(params) %% BLOCK_SIZE)
+    if(comSize == BLOCK_SIZE) return(params)
     dm <- list(rep(0, 4))
     params <- c(params, rep(dm, comSize))
   }
@@ -67,6 +68,9 @@ complementVector <- function(sVector) {
 complementMatrix <- function(sMatrix) {
   rows <- nrow(sMatrix)
   complementedRSize <- BLOCK_SIZE  - (rows %% BLOCK_SIZE)
+  if(complementedRSize == BLOCK_SIZE) {
+    return(sMatrix)
+  }
   complementedMatrix <- matrix(0, nrow = complementedRSize, ncol = ASTRO_OBJ_SIZE)
   rbind(sMatrix, complementedMatrix)
 }

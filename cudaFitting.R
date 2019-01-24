@@ -32,7 +32,7 @@ continuumFitting <- function(wavelengthsMatrix, spectrumsMatrix, errorsMatrix, s
   lambdaAmp <- fitParams$lambdaAmplitude
   if(lambdaAmp > 0) {
     lambdaAmpLog <- log10(lambdaAmp)
-    wavelenghtsLog10 <- cppMatrixAddScalar(wavelenghtsLog10, lambdaAmpLog)
+    wavelenghtsLog10 <- cppMatrixAddScalar(wavelenghtsLog10, -lambdaAmpLog)
   }
   
   reglin <- cppReglin(wavelenghtsLog10, spectrumsLog10, sizesModified)
@@ -213,7 +213,6 @@ elementFitting <- function(
     sizes = sizes,
     results = fitInitialResults
   )
-  
   gaussianMatrix <- cppCalculateGaussian(
     wavelengthsFiltered,
     fitResults,
@@ -233,7 +232,6 @@ elementFitting <- function(
     sizes = sizes
   )
   gaussianFWHM <- cppCalculateFWHM(fitResults)
-  
   list(
     fitResults = fitResults,
     equiwalentWidth = gaussianEquiwalentWidth,
@@ -301,12 +299,10 @@ testFitting <- function() {
       feWindows,
       feFitParams = feFitParams
     )
-    
     if(i < iter) {
       spectrums <- cppMatrixMinusMatrix(spectrums, feFitResults$feFitted)
     }
   }
-  
   allFitParams <- append(list(continuum = continuumResult$fitParams), list(feFit=feFitResults$fitParams))
   spectrums <- cppMatrixMinusMatrix(spectrumsC, feFitResults$feFitted)
   spectrums <- cppMatrixMinusMatrix(spectrums, continuumResult$cfun)
@@ -336,4 +332,4 @@ testFitting <- function() {
 
 
 
-fittingParams <- testFitting()
+testFitting()

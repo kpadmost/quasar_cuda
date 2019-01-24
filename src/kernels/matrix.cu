@@ -2,8 +2,6 @@
 
 #include "cuda_tools.h"
 
-#define THREADS_NUM 512
-
 __global__ void matrix_log10
 	(
 		double *matrix,	// Macierz
@@ -120,14 +118,14 @@ void matrix_multiply_vector
 }
 
 
-
+#define BLOCK_DIM_S 16
 __global__ void matrix_transpose(double *idata, double *odata, int width, int height)
 {
-	__shared__ double block[BLOCK_DIM][BLOCK_DIM+1];
+	__shared__ double block[BLOCK_DIM_S][BLOCK_DIM_S+1];
 	
 	// read the matrix tile into shared memory
-	unsigned int xIndex = blockIdx.x * BLOCK_DIM + threadIdx.x;
-	unsigned int yIndex = blockIdx.y * BLOCK_DIM + threadIdx.y;
+	unsigned int xIndex = blockIdx.x * BLOCK_DIM_S + threadIdx.x;
+	unsigned int yIndex = blockIdx.y * BLOCK_DIM_S + threadIdx.y;
 	if((xIndex < width) && (yIndex < height))
 	{
 		unsigned int index_in = yIndex * width + xIndex;
@@ -137,8 +135,8 @@ __global__ void matrix_transpose(double *idata, double *odata, int width, int he
 	__syncthreads();
 
 	// write the transposed matrix tile to global memory
-	xIndex = blockIdx.y * BLOCK_DIM + threadIdx.x;
-	yIndex = blockIdx.x * BLOCK_DIM + threadIdx.y;
+	xIndex = blockIdx.y * BLOCK_DIM_S + threadIdx.x;
+	yIndex = blockIdx.x * BLOCK_DIM_S + threadIdx.y;
 	if((xIndex < height) && (yIndex < width))
 	{
 		unsigned int index_out = yIndex * width + xIndex;
@@ -155,7 +153,7 @@ void matrix_transpose1
 		uint height			// Ilość wierszy, wysokość macierzy
 	)
 {
-  __shared__ double scratch[BLOCK_DIM * (BLOCK_DIM + 1)];
+  __shared__ double scratch[BLOCK_DIM_S * (BLOCK_DIM_S + 1)];
 	// gid0 - numer wiersza
 	uint x_idx = blockIdx.x * blockDim.x + threadIdx.x;
 	// gid1 - numer kolumny
@@ -173,12 +171,12 @@ void matrix_transpose1
 
 
 	// Pobieranie wartości z matrix	
-	x_idx = blockIdx.y  * BLOCK_DIM + threadIdx.x;
-	y_idx = blockIdx.x * BLOCK_DIM + threadIdx.y;
+	x_idx = blockIdx.y  * BLOCK_DIM_S + threadIdx.x;
+	y_idx = blockIdx.x * BLOCK_DIM_S + threadIdx.y;
 	if((x_idx < height) && (y_idx < width))
 	{	
 		idx = y_idx * height + x_idx;
-		tmatrix[idx] = scratch[threadIdx.x*(BLOCK_DIM+1)+threadIdx.y];
+		tmatrix[idx] = scratch[threadIdx.x*(BLOCK_DIM_S+1)+threadIdx.y];
 	}
 }
 
@@ -313,10 +311,8 @@ void matrixSubstractMatrix(
     checkCudaErrors(cudaMemcpy(d_input, h_input, size, cudaMemcpyHostToDevice));
     checkCudaErrors(cudaMemcpy(d_subtrahend, h_subtrahend, size, cudaMemcpyHostToDevice));
     //kernel invocation
-    dim3 threadsPerBlock(16, 16);
-    dim3 blocksPerGrid(1, 1);
-    blocksPerGrid.x = height / threadsPerBlock.x;
-    blocksPerGrid.y = width / threadsPerBlock.y;
+    dim3 threadsPerBlock(1, BLOCK_DIM);
+    dim3 blocksPerGrid(height, calculateBlockNumber(width, threadsPerBlock.y));
     matrix_minus_matrix<<<blocksPerGrid, threadsPerBlock>>>(
       d_input,
       d_subtrahend,

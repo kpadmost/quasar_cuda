@@ -437,32 +437,6 @@ void calc_gaussian_chisq
 }
 
 
-
-
-
-
-//
-// 
-//
-
-//
-// 
-//
-
-
-/*
-void calc_gaussian_chisq
-	(
-		const double *xs,	// Argumenty dla których obliczamy gaussiana
-		const double *ys,	// Argumenty dla których obliczamy gaussiana
-		const double *errors,
-		const double4 *gparams,	// Współczynniki funkcji Gaussa
-		const uint *cols_sizes,
-		double *chisqs,
-		const uint width
-	)
-{*/
-
 extern "C"
 void calculateGaussianChisq(
   const double *h_x,
@@ -495,8 +469,8 @@ void calculateGaussianChisq(
   checkCudaErrors(cudaMemcpy(d_gparams, h_gparams, double4_vector_size, cudaMemcpyHostToDevice));
   checkCudaErrors(cudaMemcpy(d_col_sizes, h_col_sizes, uint_vector_size, cudaMemcpyHostToDevice));
   // instatiating kernel
-  const dim3 threadsPerBlock(1, BLOCK_DIM, 1);
-  const dim3 blocksPerGrid(width, calculateBlockNumber(height, threadsPerBlock.y), 1);
+  const size_t threadsPerBlock = BLOCK_DIM;
+  const size_t blocksPerGrid = calculateBlockNumber(width, threadsPerBlock);
   // calling kernel
   calc_gaussian_chisq<<<blocksPerGrid, threadsPerBlock>>>(
     d_x,
@@ -668,33 +642,3 @@ void fitGaussian(
   cudaFree(d_col_sizes);
   cudaFree(d_results);
 }
-
-/* example func, copypaste as template
-extern "C"
-void template_f(
-  double *h_input,
-  double *h_output,
-  const size_t width,
-  const size_t height
-)
-{
-  // allocating kernel data
-  double *d_input, *d_output;
-  const size_t matrix_size = width * height * sizeof(double);
-  checkCudaErrors(cudaMalloc((void**)&d_output, matrix_size));
-  checkCudaErrors(cudaMalloc((void**)&d_input, matrix_size));
-  // copying data
-  checkCudaErrors(cudaMemcpy(d_input, h_input, matrix_size, cudaMemcpyHostToDevice));
-  // instatiating kernel
-  const dim3 threadsPerBlock(BLOCK_DIM, BLOCK_DIM, 1);
-  const dim3 blocksPerGrid(width / threadsPerBlock.x, height / threadsPerBlock.y, 1);
-  // calling kernel
-  kernel_f<<<blocksPerGrid, threadsPerBlock>>>(d_input, d_output);
-  cudaDeviceSynchronize();
-  checkCudaErrors(cudaGetLastError());
-  //copying memory back
-  checkCudaErrors(cudaMemcpy(h_output, d_output, matrix_size, cudaMemcpyDeviceToHost));
-  // free memory
-  cudaFree(d_input);
-  cudaFree(d_output);
-}*/
