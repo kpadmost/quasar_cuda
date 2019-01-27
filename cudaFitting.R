@@ -325,11 +325,12 @@ testFitting <- function() {
     
   allFitParams <- append(allFitParams, list(elements = elementsFitParams))
   
-  
-  allFitParams
+  filenames <- readLines(quas_list)
+  saveResults(allFitParams, filenames, 'results')
 }
 
 
 
 
-testFitting()
+t <- system.time({testFitting()})
+print(t)
